@@ -35,28 +35,6 @@
   }
 
   /* ---------- mode and setup screens ---------- */
-  // Time between beeps. Starts slow, ends frantic.
-  function gap(p) { return 900 - 770 * Math.pow(p, 1.5); }
-
-  function drawBeats() {
-    var NS = 'http://www.w3.org/2000/svg';
-    var svg = $('beats');
-    var total = 60, t = 0;
-    while (t < total) {
-      var p = t / total;
-      var x = 2 + p * 296;
-      var h = 5 + p * 17;
-      var line = document.createElementNS(NS, 'line');
-      line.setAttribute('x1', x.toFixed(2));
-      line.setAttribute('x2', x.toFixed(2));
-      line.setAttribute('y1', '24');
-      line.setAttribute('y2', (24 - h).toFixed(2));
-      line.setAttribute('vector-effect', 'non-scaling-stroke');
-      svg.appendChild(line);
-      t += gap(p) / 1000;
-    }
-  }
-
   function buildCats() {
     var box = $('cats');
     PP.DECK_KEYS.forEach(function (k) {
@@ -110,7 +88,6 @@
 
   function initSetup() {
     buildCats();
-    drawBeats();
     $('len-' + settings.length).checked = true;
     $('tgt-' + settings.target).checked = true;
     $('sound').checked = settings.sound;
@@ -197,6 +174,9 @@
   // Each device runs its own beeps from the time left in the latest view.
   // They are only for feel: the host's timer decides when the buzzer goes.
   var clock = { endsAt: 0, total: 0, timer: null };
+
+  // Time between beeps. Starts slow, ends frantic.
+  function gap(p) { return 900 - 770 * Math.pow(p, 1.5); }
 
   function pulse() {
     try {

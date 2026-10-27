@@ -89,9 +89,10 @@ p { margin: 0; }
 }
 .hint { color: var(--muted); text-transform: none; letter-spacing: .02em; font-size: .82rem; }
 
-/* The beat strip: a picture of the beeps speeding up */
-.beats { display: block; width: 100%; height: 24px; color: var(--fg); }
-.beats line { stroke: currentColor; stroke-width: 2; }
+/* Divider between the intro and the rules */
+.bar-rule { width: 100%; height: 4px; margin: 0; border: 0; border-radius: 2px; background: var(--fg); }
+.tip { color: var(--muted); }
+.tip strong { color: var(--fg); }
 
 ol.rules { margin: 0; padding-left: 1.4rem; display: grid; gap: 8px; }
 ol.rules li::marker { font-family: var(--mono); color: var(--muted); }
