@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0}[hidden]{display:none!important}</style>
+<title>Phrase Potato</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column, one job per screen. Setup, then a full-colour play screen
+   tinted by whichever team holds the phone, then a score screen, then a winner. */
+:root {
+  --bg: #EDF0F5;
+  --surface: #FFFFFF;
+  --fg: #12151F;
+  --muted: #566074;
+  --line: #C6CEDB;
+  --focus: #2F5BEA;
+  --t0: #0A7F73;
+  --t1: #C81E64;
+  --t0-text: #0A7F73;
+  --t1-text: #C81E64;
+  --display: 'Bricolage Grotesque', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1118;
+    --surface: #171B26;
+    --fg: #EEF1F7;
+    --muted: #9AA4B8;
+    --line: #2C3445;
+    --focus: #8FA8FF;
+    --t0-text: #3CC9B8;
+    --t1-text: #FF6B9F;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1118;
+  --surface: #171B26;
+  --fg: #EEF1F7;
+  --muted: #9AA4B8;
+  --line: #2C3445;
+  --focus: #8FA8FF;
+  --t0-text: #3CC9B8;
+  --t1-text: #FF6B9F;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--display);
+  font-size: 17px;
+  line-height: 1.4;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+#app { min-height: 100%; display: flex; flex-direction: column; }
+.screen { flex: 1; display: flex; flex-direction: column; }
+.inner {
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding-block: 22px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+.t0 { --team: var(--t0); }
+.t1 { --team: var(--t1); }
+.tint { background: var(--team); color: #fff; transition: background-color .2s ease; }
+
+h1, h2 { margin: 0; font-weight: 800; letter-spacing: -0.025em; text-wrap: balance; }
+h1 { font-size: clamp(2.8rem, 13vw, 4rem); line-height: .92; }
+h2 { font-size: clamp(2rem, 9vw, 2.8rem); line-height: 1; }
+p { margin: 0; }
+.lede { font-size: 1.15rem; max-width: 30ch; }
+.mono, legend, .bar, .hint {
+  font-family: var(--mono);
+  font-size: .78rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.hint { color: var(--muted); text-transform: none; letter-spacing: .02em; font-size: .82rem; }
+
+/* The beat strip: a picture of the beeps speeding up */
+.beats { display: block; width: 100%; height: 24px; color: var(--fg); }
+.beats line { stroke: currentColor; stroke-width: 2; }
+
+ol.rules { margin: 0; padding-left: 1.4rem; display: grid; gap: 8px; }
+ol.rules li::marker { font-family: var(--mono); color: var(--muted); }
+
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 10px; }
+legend { padding: 0; color: var(--muted); margin-bottom: 2px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.chip { position: relative; display: block; min-width: 0; }
+.chip span {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: 48px; padding: 6px 16px;
+  border: 2px solid var(--line); border-radius: 999px;
+  background: var(--surface); color: var(--fg);
+  font-weight: 600; cursor: pointer;
+}
+.chip input:checked + span { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.chip input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 3px; }
+.vh {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; opacity: 0;
+}
+
+.btn {
+  display: block; width: 100%; min-height: 62px; padding: 12px 18px;
+  border: 2px solid transparent; border-radius: 12px;
+  font-family: var(--display); font-weight: 800; font-size: 1.2rem; line-height: 1.15;
+  cursor: pointer; text-align: center;
+}
+.btn:active { transform: scale(.985); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.solid { background: var(--fg); color: var(--bg); }
+.btn.onteam { background: #fff; color: var(--team); }
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); min-height: 52px; font-size: 1rem; font-weight: 600; }
+.tint .btn.ghost { color: #fff; border-color: rgba(255,255,255,.75); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.tint :focus-visible { outline-color: #fff; }
+
+/* Play screen */
+.bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; }
+.stage { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 14px; min-width: 0; }
+.cat { font-family: var(--mono); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+.phrase { margin: 0; font-weight: 800; line-height: 1.02; letter-spacing: -0.025em; text-wrap: balance; overflow-wrap: break-word; }
+.phrase[data-size="l"] { font-size: clamp(3rem, 16vw, 5.5rem); }
+.phrase[data-size="m"] { font-size: clamp(2.4rem, 12.5vw, 4.4rem); }
+.phrase[data-size="s"] { font-size: clamp(2rem, 10vw, 3.4rem); }
+.dot { width: 18px; height: 18px; border-radius: 50%; background: #fff; opacity: .55; }
+.actions { display: grid; gap: 12px; }
+
+/* Score screens */
+.board { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.score { background: var(--team); color: #fff; border-radius: 16px; padding: 16px; display: grid; gap: 6px; min-width: 0; }
+.score .name { font-family: var(--mono); font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; }
+.score .num { font-size: 4rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.pips { display: flex; flex-wrap: wrap; gap: 5px; }
+.pip { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(255,255,255,.8); }
+.pip.on { background: #fff; }
+.who-line { font-size: 1.15rem; max-width: 32ch; }
+.spacer { flex: 1; }
+.final { font-family: var(--mono); font-size: 1rem; letter-spacing: .04em; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+
+</head>
+<body>
+<main id="app">
+
+  <section class="screen" id="s-setup">
+    <div class="inner">
+      <h1>Phrase<br>Potato</h1>
+      <p class="lede">Get your team to say the phrase on screen without using any of its words.</p>
+
+      <svg class="beats" id="beats" viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true" focusable="false"></svg>
+
+      <ol class="rules">
+        <li>Describe the phrase. Your team guesses out loud.</li>
+        <li>When they get it, tap the button and pass the phone to the other team.</li>
+        <li>The beeps get faster. At the buzzer, the team holding the phone loses the round and the other team scores.</li>
+      </ol>
+
+      <fieldset>
+        <legend>Phrase types</legend>
+        <div class="chips" id="cats"></div>
+        <p class="hint" id="deckCount" role="status"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Round length</legend>
+        <div class="seg" id="lengthSeg">
+          <label class="chip"><input class="vh" type="radio" name="length" id="len-short" value="short"><span>Short</span></label>
+          <label class="chip"><input class="vh" type="radio" name="length" id="len-medium" value="medium"><span>Medium</span></label>
+          <label class="chip"><input class="vh" type="radio" name="length" id="len-long" value="long"><span>Long</span></label>
+        </div>
+        <p class="hint" id="lengthHint"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Play to</legend>
+        <div class="seg" id="targetSeg">
+          <label class="chip"><input class="vh" type="radio" name="target" id="tgt-5" value="5"><span>5 points</span></label>
+          <label class="chip"><input class="vh" type="radio" name="target" id="tgt-7" value="7"><span>7 points</span></label>
+          <label class="chip"><input class="vh" type="radio" name="target" id="tgt-10" value="10"><span>10 points</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Sound</legend>
+        <div class="chips">
+          <label class="chip"><input class="vh" type="checkbox" id="sound"><span>Beeps and buzzer</span></label>
+        </div>
+      </fieldset>
+
+      <div class="spacer"></div>
+      <button class="btn solid" id="btnStart" type="button">Start game</button>
+    </div>
+  </section>
+
+  <section class="screen tint t0" id="s-play" hidden>
+    <div class="inner">
+      <div class="bar">
+        <span id="who"></span>
+        <span id="miniScore" aria-label="Score"></span>
+      </div>
+      <div class="stage" aria-live="polite">
+        <p class="cat" id="cat"></p>
+        <h2 class="phrase" id="phrase" data-size="l"></h2>
+        <span class="dot" id="dot" aria-hidden="true"></span>
+      </div>
+      <div class="actions">
+        <button class="btn onteam" id="btnGo" type="button">Start round</button>
+        <button class="btn onteam" id="btnPass" type="button" hidden>Guessed it. Pass the phone</button>
+        <button class="btn ghost" id="btnSkip" type="button" hidden>Skip this phrase</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-result" hidden>
+    <div class="inner">
+      <p class="mono" id="resKicker">Buzzer</p>
+      <h2 id="resTitle">Time is up</h2>
+      <p class="who-line" id="resDetail"></p>
+      <div class="board" id="board"></div>
+      <div class="spacer"></div>
+      <div class="actions">
+        <button class="btn solid" id="btnNext" type="button">Next round</button>
+        <button class="btn ghost" id="btnEnd" type="button">End game</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen tint t0" id="s-win" hidden>
+    <div class="inner">
+      <p class="mono">Game over</p>
+      <h2 id="winTitle"></h2>
+      <p class="final" id="winScore"></p>
+      <div class="spacer"></div>
+      <div class="actions">
+        <button class="btn onteam" id="btnAgain" type="button">Play again</button>
+        <button class="btn ghost" id="btnSettings" type="button">Change settings</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var DECKS = {
+    things: { label: 'Everyday things', items: [
+      'Umbrella', 'Bathtub', 'Garage sale', 'Alarm clock', 'Shopping cart', 'Toothbrush',
+      'Elevator music', 'Parking ticket', 'Lawn mower', 'Snow globe', 'Yoga mat', 'Vending machine',
+      'Bunk bed', 'Fire extinguisher', 'Garden hose', 'Cheese grater', 'Rubber duck', 'Piggy bank',
+      'Remote control', 'Sleeping bag', 'Photo booth', 'Wind chime', 'Trampoline', 'Roller coaster',
+      'Bubble wrap', 'Fortune cookie', 'Disco ball', 'Hot air balloon', 'Lighthouse', 'Snowman',
+      'Scarecrow', 'Sandcastle', 'Paper airplane', 'Rocking chair', 'Roller skates', 'Birthday candles',
+      'Phone charger', 'Ice scraper', 'Slinky', 'Lava lamp'
+    ] },
+    food: { label: 'Food', items: [
+      'Pancake stack', 'Grilled cheese', 'Poutine', 'Butter tart', 'Maple syrup', 'Ice cream cone',
+      'Popcorn', 'Spaghetti and meatballs', 'Hot chocolate', 'Garlic bread', 'Potato chips', 'Fruit salad',
+      'Marshmallow', 'Cinnamon bun', 'Sushi roll', 'Birthday cake', 'Peanut butter', 'Pumpkin pie',
+      'Chicken wings', 'French fries', 'Hot dog', 'Nachos', 'Caesar salad', 'Chocolate chip cookie',
+      'Cereal bowl', 'Bagel and cream cheese', 'Apple cider', 'Candy cane', 'Leftover pizza', 'Mac and cheese',
+      'Corn on the cob', 'Milkshake', 'Dinner roll', 'Breakfast burrito', 'Cotton candy', 'Gingerbread house',
+      'Frozen pizza', 'Soup of the day', 'Lemonade stand', 'Toasted marshmallow'
+    ] },
+    places: { label: 'Places', items: [
+      'Airport security', 'Hockey rink', 'Laundromat', 'Movie theatre', 'Roller rink', 'Campground',
+      'Dentist office', 'Public library', 'Subway platform', 'Water park', 'Petting zoo', 'Drive-in theatre',
+      'Farmers market', 'Haunted house', 'Waiting room', 'Car wash', 'Mini golf', 'Cottage dock',
+      'Ski hill', 'Bowling alley', 'Gas station', 'Parking garage', 'Playground', 'Bus stop',
+      'Aquarium', 'Fairground', 'Locker room', 'Hotel lobby', 'Back seat of a car', 'Coffee shop',
+      'Rooftop patio', 'School gym', 'Grocery aisle', 'Skating rink', 'Hardware store', 'Observation deck',
+      'Corn maze', 'Snowy driveway', 'Ferris wheel', 'Truck stop'
+    ] },
+    phrases: { label: 'Sayings', items: [
+      'Piece of cake', 'Break the ice', 'Under the weather', 'Spill the beans', 'Once in a blue moon', 'Cold feet',
+      'Hit the hay', 'Bite the bullet', 'Let the cat out of the bag', 'Raining cats and dogs', 'Back to square one',
+      'Cost an arm and a leg', 'Let sleeping dogs lie', 'Elephant in the room', 'Burning the midnight oil',
+      'Jump on the bandwagon', 'Beat around the bush', 'Barking up the wrong tree', 'Out of the blue', 'The last straw',
+      'Add fuel to the fire', 'Cry over spilled milk', 'Two birds with one stone', 'Time flies', 'Walking on eggshells',
+      'Face the music', 'Throw in the towel', 'On thin ice', 'Pull my leg', 'Hold your horses',
+      'Cut corners', 'Better late than never', 'Under the radar', 'Ballpark figure', 'Full of beans',
+      'Hot potato', 'A grain of salt', 'Wild goose chase', 'Butterflies in your stomach', 'Icing on the cake'
+    ] },
+    actions: { label: 'Actions', items: [
+      'Doing the dishes', 'Walking the dog', 'Shoveling snow', 'Tying shoelaces', 'Taking a selfie', 'Blowing bubbles',
+      'Skipping rocks', 'Ordering takeout', 'Binge watching', 'Jumping rope', 'Playing hide and seek', 'Giving a high five',
+      'Folding laundry', 'Carving a pumpkin', 'Making a snow angel', 'Stuck in traffic', 'Running late', 'Losing your keys',
+      'Singing in the shower', 'Parallel parking', 'Waiting in line', 'Karaoke night', 'Building a fort', 'Raking leaves',
+      'Roasting marshmallows', 'Texting a friend', 'Planting a garden', 'Going camping', 'Wrapping presents', 'Setting the table',
+      'Telling a joke', 'Hitting snooze', 'Brushing your teeth', 'Making a wish', 'Tripping on the stairs', 'Catching a bus',
+      'Sneaking a snack', 'Doing a puzzle', 'Learning to skate', 'Charging your phone'
+    ] }
+  };
+  var DECK_KEYS = ['things', 'food', 'places', 'phrases', 'actions'];
+  var LENGTHS = { short: [30, 50], medium: [45, 75], long: [60, 100] };
+  var TARGETS = [5, 7, 10];
+  var TEAMS = [{ name: 'Teal', cls: 't0' }, { name: 'Magenta', cls: 't1' }];
+  var STORE_KEY = 'phrase-potato-settings';
+
+  function $(id) { return document.getElementById(id); }
+  function has(obj, key) { return Object.prototype.hasOwnProperty.call(obj, key); }
+
+  var settings = { cats: DECK_KEYS.slice(), length: 'medium', target: 7, sound: true };
+  var g = {
+    scores: [0, 0], holding: 0, starter: 0, round: 1,
+    deck: [], idx: 0, running: false, over: false,
+    timer: null, startAt: 0, total: 0
+  };
+
+  /* ---------- settings (optional per-device convenience) ---------- */
+  function loadSettings() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return;
+      var s = JSON.parse(raw);
+      if (!s || typeof s !== 'object') return;
+      if (Array.isArray(s.cats)) {
+        var cats = s.cats.filter(function (k) { return typeof k === 'string' && has(DECKS, k); });
+        if (cats.length) settings.cats = cats;
+      }
+      if (typeof s.length === 'string' && has(LENGTHS, s.length)) settings.length = s.length;
+      if (TARGETS.indexOf(s.target) > -1) settings.target = s.target;
+      if (typeof s.sound === 'boolean') settings.sound = s.sound;
+    } catch (e) { /* storage unavailable: defaults are fine */ }
+  }
+  function saveSettings() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(settings)); } catch (e) { /* ignore */ }
+  }
+
+  /* ---------- screens ---------- */
+  var SCREENS = ['s-setup', 's-play', 's-result', 's-win'];
+  function show(id) {
+    SCREENS.forEach(function (s) { $(s).hidden = (s !== id); });
+    try { window.scrollTo(0, 0); } catch (e) { /* ignore */ }
+  }
+
+  /* ---------- setup screen ---------- */
+  function drawBeats() {
+    var NS = 'http://www.w3.org/2000/svg';
+    var svg = $('beats');
+    var total = 60, t = 0;
+    while (t < total) {
+      var p = t / total;
+      var x = 2 + p * 296;
+      var h = 5 + p * 17;
+      var line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', x.toFixed(2));
+      line.setAttribute('x2', x.toFixed(2));
+      line.setAttribute('y1', '24');
+      line.setAttribute('y2', (24 - h).toFixed(2));
+      line.setAttribute('vector-effect', 'non-scaling-stroke');
+      svg.appendChild(line);
+      t += gap(p) / 1000;
+    }
+  }
+
+  function deckSize() {
+    var n = 0;
+    settings.cats.forEach(function (k) { n += DECKS[k].items.length; });
+    return n;
+  }
+
+  function buildCats() {
+    var box = $('cats');
+    DECK_KEYS.forEach(function (k) {
+      var label = document.createElement('label');
+      label.className = 'chip';
+      var input = document.createElement('input');
+      input.type = 'checkbox';
+      input.className = 'vh';
+      input.id = 'cat-' + k;
+      input.value = k;
+      input.checked = settings.cats.indexOf(k) > -1;
+      var span = document.createElement('span');
+      span.textContent = DECKS[k].label;
+      label.appendChild(input);
+      label.appendChild(span);
+      box.appendChild(label);
+      input.addEventListener('change', onCatsChange);
+    });
+  }
+
+  function onCatsChange() {
+    var picked = [];
+    $('cats').querySelectorAll('input').forEach(function (i) { if (i.checked) picked.push(i.value); });
+    settings.cats = picked;
+    refreshSetup();
+    saveSettings();
+  }
+
+  function refreshSetup() {
+    var n = deckSize();
+    $('deckCount').textContent = n ? n + ' phrases in the deck' : 'Pick at least one phrase type to start.';
+    $('btnStart').disabled = (n === 0);
+    var r = LENGTHS[settings.length];
+    $('lengthHint').textContent = r[0] + ' to ' + r[1] + ' seconds, picked at random each round.';
+  }
+
+  function wireRadios(name, onPick) {
+    document.querySelectorAll('input[name="' + name + '"]').forEach(function (i) {
+      i.addEventListener('change', function () { if (i.checked) onPick(i.value); });
+    });
+  }
+
+  function initSetup() {
+    buildCats();
+    drawBeats();
+    $('len-' + settings.length).checked = true;
+    $('tgt-' + settings.target).checked = true;
+    $('sound').checked = settings.sound;
+    wireRadios('length', function (v) {
+      if (has(LENGTHS, v)) { settings.length = v; refreshSetup(); saveSettings(); }
+    });
+    wireRadios('target', function (v) {
+      var n = parseInt(v, 10);
+      if (TARGETS.indexOf(n) > -1) { settings.target = n; saveSettings(); }
+    });
+    $('sound').addEventListener('change', function () { settings.sound = $('sound').checked; saveSettings(); });
+    refreshSetup();
+  }
+
+  /* ---------- sound, vibration, screen wake ---------- */
+  var ctx = null;
+  function audio() {
+    if (!settings.sound) return null;
+    try {
+      if (!ctx) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        ctx = new AC();
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    } catch (e) { return null; }
+  }
+  function tone(freq, dur, type, vol) {
+    var c = audio();
+    if (!c) return;
+    try {
+      var o = c.createOscillator();
+      var gn = c.createGain();
+      var t = c.currentTime;
+      o.type = type;
+      o.frequency.value = freq;
+      gn.gain.setValueAtTime(vol, t);
+      gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(gn);
+      gn.connect(c.destination);
+      o.start(t);
+      o.stop(t + dur + 0.02);
+    } catch (e) { /* ignore */ }
+  }
+  function vibrate(pattern) {
+    try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) { /* ignore */ }
+  }
+  var wake = null;
+  function lockScreen() {
+    try {
+      if (navigator.wakeLock && navigator.wakeLock.request) {
+        navigator.wakeLock.request('screen').then(function (l) { wake = l; }).catch(function () { /* refused: fine */ });
+      }
+    } catch (e) { /* ignore */ }
+  }
+  function unlockScreen() {
+    try {
+      if (wake) { wake.release().catch(function () { /* ignore */ }); wake = null; }
+    } catch (e) { /* ignore */ }
+  }
+
+  /* ---------- deck ---------- */
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function buildDeck() {
+    var d = [];
+    settings.cats.forEach(function (k) {
+      DECKS[k].items.forEach(function (text) { d.push({ text: text, cat: DECKS[k].label }); });
+    });
+    return shuffle(d);
+  }
+  function sizeFor(text) {
+    var longest = 0;
+    text.split(/\s+/).forEach(function (w) { if (w.length > longest) longest = w.length; });
+    if (text.length <= 14 && longest <= 9) return 'l';
+    if (text.length <= 26 && longest <= 11) return 'm';
+    return 's';
+  }
+  function nextPhrase() {
+    if (g.idx >= g.deck.length) { g.deck = buildDeck(); g.idx = 0; }
+    var p = g.deck[g.idx++];
+    $('cat').textContent = p.cat;
+    var el = $('phrase');
+    el.textContent = p.text;
+    el.setAttribute('data-size', sizeFor(p.text));
+  }
+
+  /* ---------- game flow ---------- */
+  function paintHolding() {
+    var s = $('s-play');
+    s.classList.remove('t0', 't1');
+    s.classList.add(TEAMS[g.holding].cls);
+    $('who').textContent = TEAMS[g.holding].name + ' team has the phone';
+  }
+  function paintMiniScore() {
+    $('miniScore').textContent = TEAMS[0].name + ' ' + g.scores[0] + ' : ' + g.scores[1] + ' ' + TEAMS[1].name;
+  }
+
+  function startGame() {
+    g.scores = [0, 0];
+    g.starter = 0;
+    g.round = 1;
+    g.over = false;
+    g.deck = buildDeck();
+    g.idx = 0;
+    goReady();
+  }
+
+  function goReady() {
+    g.running = false;
+    g.holding = g.starter;
+    paintHolding();
+    paintMiniScore();
+    $('who').textContent = TEAMS[g.holding].name + ' team starts';
+    $('cat').textContent = 'Round ' + g.round;
+    $('phrase').textContent = 'Ready?';
+    $('phrase').setAttribute('data-size', 'l');
+    $('btnGo').hidden = false;
+    $('btnPass').hidden = true;
+    $('btnSkip').hidden = true;
+    show('s-play');
+  }
+
+  // Time between beeps. Starts slow, ends frantic.
+  function gap(p) { return 900 - 770 * Math.pow(p, 1.5); }
+
+  function startRound() {
+    audio(); // create the audio context inside this tap
+    var r = LENGTHS[settings.length];
+    g.total = (r[0] + Math.random() * (r[1] - r[0])) * 1000;
+    g.startAt = performance.now();
+    g.running = true;
+    paintHolding();
+    nextPhrase();
+    $('btnGo').hidden = true;
+    $('btnPass').hidden = false;
+    $('btnSkip').hidden = false;
+    lockScreen();
+    tick();
+  }
+
+  function pulse() {
+    try {
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      $('dot').animate(
+        [{ transform: 'scale(1.9)', opacity: 1 }, { transform: 'scale(1)', opacity: 0.55 }],
+        { duration: 170, easing: 'ease-out' }
+      );
+    } catch (e) { /* ignore */ }
+  }
+
+  function tick() {
+    if (!g.running) return;
+    var elapsed = performance.now() - g.startAt;
+    if (elapsed >= g.total) { buzz(); return; }
+    var p = elapsed / g.total;
+    tone(600 + p * 600, 0.07, 'square', 0.14);
+    pulse();
+    var wait = Math.min(gap(p), g.total - elapsed);
+    g.timer = setTimeout(tick, wait);
+  }
+
+  function pass() {
+    if (!g.running) return;
+    g.holding = 1 - g.holding;
+    paintHolding();
+    nextPhrase();
+    tone(520, 0.05, 'triangle', 0.12);
+  }
+
+  function skip() {
+    if (!g.running) return;
+    nextPhrase();
+  }
+
+  function buzz() {
+    if (!g.running) return;
+    g.running = false;
+    clearTimeout(g.timer);
+    unlockScreen();
+    var loser = g.holding;
+    var winner = 1 - loser;
+    g.scores[winner] += 1;
+    tone(110, 1.0, 'sawtooth', 0.35);
+    tone(165, 1.0, 'sawtooth', 0.2);
+    vibrate([200, 80, 400]);
+    g.over = g.scores[winner] >= settings.target;
+    $('resTitle').textContent = 'Time is up';
+    $('resDetail').textContent = TEAMS[loser].name + ' team was holding the phone. ' + TEAMS[winner].name + ' team scores a point.';
+    renderBoard($('board'));
+    $('btnNext').textContent = g.over ? 'See the winner' : 'Next round';
+    show('s-result');
+  }
+
+  function renderBoard(el) {
+    el.textContent = '';
+    TEAMS.forEach(function (team, i) {
+      var box = document.createElement('div');
+      box.className = 'score ' + team.cls;
+      var name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = team.name;
+      var num = document.createElement('span');
+      num.className = 'num';
+      num.textContent = String(g.scores[i]);
+      var pips = document.createElement('span');
+      pips.className = 'pips';
+      pips.setAttribute('aria-hidden', 'true');
+      for (var k = 0; k < settings.target; k++) {
+        var pip = document.createElement('span');
+        pip.className = 'pip' + (k < g.scores[i] ? ' on' : '');
+        pips.appendChild(pip);
+      }
+      box.appendChild(name);
+      box.appendChild(num);
+      box.appendChild(pips);
+      el.appendChild(box);
+    });
+  }
+
+  function showWin() {
+    var w = g.scores[0] > g.scores[1] ? 0 : 1;
+    var s = $('s-win');
+    s.classList.remove('t0', 't1');
+    s.classList.add(TEAMS[w].cls);
+    $('winTitle').textContent = TEAMS[w].name + ' team wins';
+    $('winScore').textContent = 'First to ' + settings.target + '. Final score ' + TEAMS[0].name + ' ' + g.scores[0] + ', ' + TEAMS[1].name + ' ' + g.scores[1] + '.';
+    show('s-win');
+  }
+
+  function nextRound() {
+    if (g.over) { showWin(); return; }
+    g.round += 1;
+    g.starter = 1 - g.starter;
+    goReady();
+  }
+
+  function endToSetup() {
+    g.running = false;
+    clearTimeout(g.timer);
+    unlockScreen();
+    show('s-setup');
+  }
+
+  /* ---------- wiring ---------- */
+  $('btnStart').addEventListener('click', function () { if (deckSize() > 0) startGame(); });
+  $('btnGo').addEventListener('click', startRound);
+  $('btnPass').addEventListener('click', pass);
+  $('btnSkip').addEventListener('click', skip);
+  $('btnNext').addEventListener('click', nextRound);
+  $('btnEnd').addEventListener('click', endToSetup);
+  $('btnAgain').addEventListener('click', startGame);
+  $('btnSettings').addEventListener('click', endToSetup);
+
+  // If the phone slept or the tab was hidden, end the round the moment we are back.
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible' || !g.running) return;
+    if (performance.now() - g.startAt >= g.total) { buzz(); } else { lockScreen(); }
+  });
+
+  loadSettings();
+  initSetup();
+})();
+</script>
+
+</body>
+</html>
