@@ -17,7 +17,7 @@
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
   function cleanSettings(s) {
-    var out = { cats: PP.DECK_KEYS.slice(), length: 'medium', target: 7, sound: true };
+    var out = { cats: PP.DECK_KEYS.slice(), length: 'medium', target: 7, sound: false };
     if (!s || typeof s !== 'object') return out;
     if (Array.isArray(s.cats)) {
       var cats = s.cats.filter(function (k) { return typeof k === 'string' && has(PP.DECKS, k); });
