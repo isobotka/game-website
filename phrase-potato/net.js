@@ -6,21 +6,28 @@
    and they call onView(view) whenever this device should redraw.
 
    Local: the rules run right here.
-   Host:  the rules run here, and every guest gets their own view over WebRTC.
-   Guest: taps go to the host, views come back. */
+   Host:  the rules run here, and every guest gets their own view through the relay.
+   Guest: taps go to the host, views come back.
+
+   The relay (see relay/ at the top of the repo) is a small server that only
+   passes messages along, so it works on any network. */
 (function (PP) {
   'use strict';
 
   var R = PP.rules;
-  var PEERJS_URL = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
-  var PREFIX = 'phrasepotato-';
+  // Pages served from this machine talk to `npm run dev` in relay/.
+  var RELAY_URL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+    ? 'ws://' + location.hostname + ':8787'
+    : 'wss://phrase-potato-relay.isob.workers.dev';
+  var PING_MS = 30000; // keeps idle connections from being dropped along the way
+  var CLOSE = { HOST_LEFT: 4000, NO_ROOM: 4004, TOO_FAST: 4008, TAKEN: 4009, FULL: 4029 }; // as in relay/src/index.js
   var CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ'; // no I, L or O, they look like 1 and 0
 
   /* ---------- the session: holds the state and runs the buzzer ---------- */
   function Session(online, onView) {
     this.state = R.newState(online);
     this.onView = onView;
-    this.conns = {};   // guest peer id -> connection
+    this.conns = {};   // guest id -> { send(message) }
     this.timer = null;
     var self = this;
     this.onVisible = function () { if (document.visibilityState === 'visible') self.schedule(); };
@@ -60,25 +67,23 @@
   Session.prototype.close = function () {
     clearTimeout(this.timer);
     document.removeEventListener('visibilitychange', this.onVisible);
-    var conns = this.conns;
     this.conns = {};
-    for (var id in conns) { try { conns[id].close(); } catch (e) { /* ignore */ } }
-    if (this.peer) { try { this.peer.destroy(); } catch (e) { /* ignore */ } }
+    var ws = this.ws;
+    this.ws = null; // the relay tells the guests we left
+    if (ws) ws.close(1000);
   };
 
-  /* ---------- PeerJS, loaded only when someone picks online ---------- */
-  var peerjs = null;
-  function loadPeerJS() {
-    if (window.Peer) return Promise.resolve();
-    if (peerjs) return peerjs;
-    peerjs = new Promise(function (resolve, reject) {
-      var s = document.createElement('script');
-      s.src = PEERJS_URL;
-      s.onload = resolve;
-      s.onerror = function () { peerjs = null; reject(new Error('Could not load the online library. Check your connection.')); };
-      document.head.appendChild(s);
-    });
-    return peerjs;
+  /* ---------- the relay ---------- */
+  function openSocket(code, role) {
+    var ws = new WebSocket(RELAY_URL + '/room/' + code + '?role=' + role);
+    var ping = setInterval(function () { if (ws.readyState === 1) ws.send('ping'); }, PING_MS);
+    ws.addEventListener('close', function () { clearInterval(ping); });
+    return ws;
+  }
+  function sendJSON(ws, msg) { if (ws.readyState === 1) ws.send(JSON.stringify(msg)); }
+  function parse(data) {
+    if (data === 'pong') return null;
+    try { return JSON.parse(data); } catch (e) { return null; }
   }
 
   function randomCode() {
@@ -99,53 +104,49 @@
   // Resolves with the session once the room code is registered.
   // onStatus(message) reports trouble after that.
   function host(name, onView, onStatus) {
-    return loadPeerJS().then(function () {
-      return new Promise(function (resolve, reject) {
-        var session = new Session(true, onView);
-        var tries = 0;
+    return new Promise(function (resolve, reject) {
+      var session = new Session(true, onView);
+      var tries = 0;
 
-        function open() {
-          var code = randomCode();
-          var peer = new window.Peer(PREFIX + code);
-          var ready = false;
-          session.peer = peer;
+      function open() {
+        var code = randomCode();
+        var ws = openSocket(code, 'host');
+        var ready = false;
+        session.ws = ws;
 
-          peer.on('open', function () {
+        ws.addEventListener('message', function (e) {
+          var msg = parse(e.data);
+          if (!msg) return;
+          if (msg.t === 'ready' && !ready) {
             ready = true;
             session.code = code;
             session.dispatch({ type: 'JOIN', name: name }, R.HOST);
             resolve(session);
-          });
-          peer.on('connection', function (conn) { acceptGuest(session, conn); });
-          // Lost the signalling server: existing players keep playing, but new
-          // players can't join until we reconnect.
-          peer.on('disconnected', function () {
-            if (!peer.destroyed) { try { peer.reconnect(); } catch (e) { /* ignore */ } }
-          });
-          peer.on('error', function (err) {
-            if (!ready && err.type === 'unavailable-id' && tries++ < 5) { peer.destroy(); open(); return; }
-            if (!ready) { session.close(); reject(new Error(describeError(err))); return; }
-            if (err.type !== 'peer-unavailable') onStatus(describeError(err));
-          });
-        }
-        open();
-      });
+          } else if (msg.t === 'join') {
+            session.conns[msg.id] = guestConn(ws, msg.id);
+          } else if (msg.t === 'msg') {
+            var d = msg.d;
+            if (session.conns[msg.id] && d && d.t === 'act' && d.a && typeof d.a === 'object') session.dispatch(d.a, msg.id);
+          } else if (msg.t === 'leave') {
+            if (!session.conns[msg.id]) return;
+            delete session.conns[msg.id];
+            session.dispatch({ type: 'LEAVE' }, msg.id);
+          }
+        });
+        ws.addEventListener('close', function (e) {
+          if (session.ws !== ws) return; // we closed it on purpose
+          if (!ready && e.code === CLOSE.TAKEN && tries++ < 5) { open(); return; }
+          if (!ready) { session.close(); reject(new Error(describeClose(e.code, false))); return; }
+          session.ws = null;
+          onStatus('Lost the connection to the game server. Leave and open a new room.');
+        });
+      }
+      open();
     });
   }
 
-  function acceptGuest(session, conn) {
-    var id = conn.peer;
-    conn.on('open', function () { session.conns[id] = conn; });
-    conn.on('data', function (msg) {
-      if (msg && msg.t === 'act' && msg.a && typeof msg.a === 'object') session.dispatch(msg.a, id);
-    });
-    function gone() {
-      if (!session.conns[id]) return;
-      delete session.conns[id];
-      session.dispatch({ type: 'LEAVE' }, id);
-    }
-    conn.on('close', gone);
-    conn.on('error', gone);
+  function guestConn(ws, id) {
+    return { send: function (msg) { sendJSON(ws, { t: 'to', id: id, d: msg }); } };
   }
 
   /* ---------- guest ---------- */
@@ -154,57 +155,47 @@
   function guest(code, name, onView, onStatus) {
     code = cleanCode(code);
     if (code.length !== 4) return Promise.reject(new Error('Room codes are 4 letters.'));
-    return loadPeerJS().then(function () {
-      return new Promise(function (resolve, reject) {
-        var peer = new window.Peer();
-        var conn = null;
-        var ready = false;
-        var closed = false;
-        var api = {
-          code: code,
-          send: function (a) { if (conn && conn.open) conn.send({ t: 'act', a: a }); },
-          close: function () {
-            closed = true;
-            try { if (conn) conn.close(); } catch (e) { /* ignore */ }
-            try { peer.destroy(); } catch (e) { /* ignore */ }
-          }
-        };
-        function fail(message) {
-          if (closed) return;
-          if (!ready) { api.close(); reject(new Error(message)); return; }
-          api.close();
-          onStatus(message);
-        }
+    return new Promise(function (resolve, reject) {
+      var ws = openSocket(code, 'guest');
+      var ready = false;
+      var closed = false;
+      var api = {
+        code: code,
+        send: function (a) { sendJSON(ws, { t: 'act', a: a }); },
+        close: function () { closed = true; ws.close(1000); }
+      };
+      function fail(message) {
+        if (closed) return;
+        api.close();
+        if (!ready) reject(new Error(message));
+        else onStatus(message);
+      }
 
-        peer.on('open', function () {
-          conn = peer.connect(PREFIX + code, { reliable: true });
-          conn.on('open', function () {
-            ready = true;
-            api.send({ type: 'JOIN', name: name });
-            resolve(api);
-          });
-          conn.on('data', function (msg) { if (msg && msg.t === 'view' && msg.v) onView(msg.v); });
-          conn.on('close', function () { fail('The host left the game.'); });
-          conn.on('error', function () { fail('Lost the connection to the host.'); });
-        });
-        peer.on('error', function (err) { fail(describeError(err)); });
-        // A guest's own peer losing the signalling server is fine once connected.
-        peer.on('disconnected', function () { if (!ready) fail('Could not reach the game server.'); });
-        // If the host never answers, don't hang forever.
-        setTimeout(function () { if (!ready) fail('No answer from that room. Check the code and try again.'); }, 15000);
+      ws.addEventListener('message', function (e) {
+        var msg = parse(e.data);
+        if (!msg) return;
+        if (msg.t === 'ready' && !ready) {
+          ready = true;
+          api.send({ type: 'JOIN', name: name });
+          resolve(api);
+        } else if (msg.t === 'view' && msg.v) {
+          onView(msg.v);
+        }
       });
+      ws.addEventListener('close', function (e) { fail(describeClose(e.code, ready)); });
+      // If the server never answers, don't hang forever.
+      setTimeout(function () { if (!ready) fail('Could not reach the game server. Check your connection.'); }, 15000);
     });
   }
 
-  function describeError(err) {
-    switch (err && err.type) {
-      case 'peer-unavailable': return 'No game with that code. Check it and try again.';
-      case 'network':
-      case 'server-error':
-      case 'socket-error':
-      case 'socket-closed': return 'Could not reach the game server. Check your connection.';
-      case 'browser-incompatible': return 'This browser does not support online play.';
-      default: return 'Something went wrong with the connection. Try again.';
+  function describeClose(code, wasReady) {
+    switch (code) {
+      case CLOSE.NO_ROOM: return 'No game with that code. Check it and try again.';
+      case CLOSE.HOST_LEFT: return 'The host left the game.';
+      case CLOSE.FULL: return 'That game is full.';
+      case CLOSE.TAKEN: return 'Could not open a room. Try again.';
+      case CLOSE.TOO_FAST: return 'Too many messages too quickly. Join again.';
+      default: return wasReady ? 'Lost the connection to the game server.' : 'Could not reach the game server. Check your connection.';
     }
   }
 
