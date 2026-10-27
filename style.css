@@ -1,0 +1,80 @@
+/* Old-school homepage look. Tweak the colours at the top to restyle everything. */
+
+body {
+  margin: 0;
+  padding: 20px 10px;
+  background-color: #000033;
+  /* Tiled background: put any small image in img/ and uncomment this line */
+  /* background-image: url("img/stars.gif"); */
+  color: #e0e0e0;
+  font-family: Verdana, Tahoma, Geneva, sans-serif;
+  font-size: 14px;
+}
+
+#page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  background-color: #10104a;
+  border: 4px ridge #8888ff;
+}
+
+h1 {
+  margin: 8px 0 0;
+  text-align: center;
+  font-family: "Comic Sans MS", "Comic Sans", cursive;
+  font-size: 32px;
+  color: #ffff66;
+  text-shadow: 2px 2px 0 #ff00aa;
+}
+
+.tagline {
+  margin-top: 4px;
+  text-align: center;
+  font-style: italic;
+  color: #aaaaff;
+}
+
+hr {
+  border: 0;
+  border-top: 2px dashed #8888ff;
+  margin: 16px 0;
+}
+
+a         { color: #00ffff; }
+a:visited { color: #ff88ff; }
+a:hover   { color: #ffff66; background-color: #ff00aa; }
+
+/* The games table */
+table.games {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 2px;
+  border: 3px outset #8888ff;
+  background-color: #000033;
+}
+
+table.games th,
+table.games td {
+  padding: 8px;
+  border: 2px inset #8888ff;
+  vertical-align: top;
+}
+
+table.games th {
+  background-color: #333399;
+  color: #ffff66;
+  font-family: "Courier New", Courier, monospace;
+  text-transform: uppercase;
+}
+
+table.games td:first-child {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.small {
+  text-align: center;
+  font-size: 11px;
+  color: #aaaaff;
+}
