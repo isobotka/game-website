@@ -140,6 +140,7 @@ legend { padding: 0; color: var(--muted); margin-bottom: 2px; }
 .btn.solid { background: var(--fg); color: var(--bg); }
 .btn.onteam { background: #fff; color: var(--team); }
 .btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); min-height: 52px; font-size: 1rem; font-weight: 600; }
+.btn.slim { min-height: 52px; font-size: 1rem; font-weight: 600; }  /* a ghost button's size */
 .tint .btn.ghost { color: #fff; border-color: rgba(255,255,255,.75); }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 .tint :focus-visible { outline-color: #fff; }
