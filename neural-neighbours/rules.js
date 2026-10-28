@@ -19,7 +19,7 @@
   var MODES = ['teams', 'solo'];
   var TARGETS = [5, 10, 15];  // teams: points to win
   var LAPS = [1, 2, 3];       // solo: times each player is the psychic
-  var BAND = 5;               // width of the bullseye on the 0 to 100 dial; the 2 and 1 bands are twice as wide
+  var BAND = 5;               // width of the bullseye on the 0 to 100 dial; the 2 and 1 bands are 1.5 times as wide
   var HOST = 'host';          // the host's player id, also the single device in local play
   var MAX_PLAYERS = 16;
 
@@ -49,8 +49,8 @@
   function pointsFor(guess, target) {
     var d = Math.abs(guess - target);
     if (d <= BAND / 2) return 4;
-    if (d <= BAND * 2.5) return 2;
-    if (d <= BAND * 4.5) return 1;
+    if (d <= BAND * 2) return 2;
+    if (d <= BAND * 3.5) return 1;
     return 0;
   }
 

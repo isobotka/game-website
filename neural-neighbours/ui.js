@@ -117,7 +117,7 @@
 
     if (v.target !== null) {
       var b = v.band;
-      [[-4.5, -2.5, 1], [-2.5, -0.5, 2], [-0.5, 0.5, 4], [0.5, 2.5, 2], [2.5, 4.5, 1]].forEach(function (w) {
+      [[-3.5, -2, 1], [-2, -0.5, 2], [-0.5, 0.5, 4], [0.5, 2, 2], [2, 3.5, 1]].forEach(function (w) {
         var from = Math.max(0, v.target + w[0] * b), to = Math.min(100, v.target + w[1] * b);
         if (to <= from) return; // run off the end of the dial
         svg.appendChild(wedge(from, to, 'w' + w[2]));
