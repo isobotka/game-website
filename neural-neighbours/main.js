@@ -234,6 +234,7 @@
 
   /* ---------- round, reveal and win screens ---------- */
   $('btnGo').addEventListener('click', function () { send({ type: 'START_ROUND' }); });
+  $('btnAdmin').addEventListener('click', function () { ui.toggleAdmin(); if (view) ui.render(view); });
   $('btnShuffle').addEventListener('click', function () { send({ type: 'SHUFFLE_ORDER' }); });
   $('order').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-group]');

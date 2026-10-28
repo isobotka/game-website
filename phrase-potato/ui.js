@@ -13,6 +13,7 @@
 
   var settings = R.cleanSettings(null);
   var setupKind = 'local';
+  var admin = false; // the host has switched on admin controls (anything with class admin-only)
 
   /* ---------- settings (optional per-device convenience) ---------- */
   function loadSettings() {
@@ -263,6 +264,20 @@
     $('miniScore').textContent = teamName(0) + ' ' + v.scores[0] + ' : ' + v.scores[1] + ' ' + teamName(1);
   }
 
+  /* ---------- admin controls ---------- */
+  // Hidden by default so the screen stays simple; the host can switch them on.
+  function toggleAdmin() {
+    admin = !admin;
+    document.body.classList.toggle('admin', admin);
+  }
+  // The switch only shows when the screen has admin controls on it: for now,
+  // the turn order before a round. Widen this when adding more.
+  function hasAdmin(v) { return v.isHost && v.online && v.phase === 'ready'; }
+  function paintAdmin(available) {
+    $('btnAdmin').hidden = !available;
+    $('btnAdmin').setAttribute('aria-checked', String(admin));
+  }
+
   function renderReady(v) {
     tint('s-play', v.solo ? 0 : v.starter);
     paintMiniScore(v);
@@ -274,7 +289,7 @@
     renderOrder(v);
     $('btnPass').hidden = true;
     $('btnSkip').hidden = true;
-    hint('playHint', v.isHost ? (v.online ? 'Set who describes in what order, then start.' : '') : 'Waiting for the host to start the round.');
+    hint('playHint', v.isHost ? (v.online && admin ? 'Set who describes in what order, then start.' : '') : 'Waiting for the host to start the round.');
   }
 
   // Who describes in what order this round. The host can move players up.
@@ -301,7 +316,7 @@
         if (v.isHost && i > 0) {
           var up = document.createElement('button');
           up.type = 'button';
-          up.className = 'up';
+          up.className = 'up admin-only';
           up.textContent = '↑';
           up.dataset.team = String(t);
           up.dataset.index = String(i);
@@ -551,6 +566,7 @@
       }
     }
 
+    paintAdmin(!(opts && opts.stay) && hasAdmin(v));
     if (!(opts && opts.stay)) show(SCREEN_FOR[v.phase]);
   }
 
@@ -558,6 +574,7 @@
   function reset() {
     prev = null;
     roomCode = '';
+    paintAdmin(false);
     stopBeeps();
     unlockScreen();
   }
@@ -567,7 +584,7 @@
 
   PP.ui = {
     $: $, show: show, render: render, reset: reset, setRoom: setRoom,
-    setupFor: setupFor, setupStatus: setupStatus, busy: busy,
+    setupFor: setupFor, setupStatus: setupStatus, busy: busy, toggleAdmin: toggleAdmin,
     settings: function () { return settings; }
   };
 })(window.PP = window.PP || {});

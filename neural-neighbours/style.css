@@ -5,6 +5,7 @@
 :root { color-scheme: light; }
 body { margin: 0; }
 [hidden] { display: none !important; }  /* screens use display:flex, so hidden needs this */
+body:not(.admin) .admin-only { display: none !important; }  /* host controls, behind the Admin toggle */
 
 :root {
   --bg: #EDF0F5;
@@ -73,6 +74,22 @@ body { display: flex; flex-direction: column; }
   color: #ffff66; text-shadow: 1px 1px 0 #ff00aa; text-decoration: none;
 }
 .site a:hover { text-decoration: underline; }
+.site { position: relative; }
+/* The host's admin toggle: a little switch at the right of the banner */
+.admin-switch {
+  position: absolute; right: max(10px, env(safe-area-inset-right, 0px)); top: 50%; transform: translateY(-50%);
+  display: flex; align-items: center; gap: 6px; padding: 4px 0; background: none; border: 0; cursor: pointer;
+  font-family: var(--mono); font-size: .7rem; letter-spacing: .04em; color: #c8c8ff;
+}
+.admin-switch::after {
+  content: ''; width: 26px; height: 14px; border-radius: 7px; border: 1.5px solid #8888ff; box-sizing: border-box;
+  background: radial-gradient(circle at 6px 50%, #8888ff 3.5px, transparent 4px);
+}
+.admin-switch[aria-checked="true"] { color: #ffff66; }
+.admin-switch[aria-checked="true"]::after {
+  border-color: #ffff66; background: #ff00aa radial-gradient(circle at 17px 50%, #ffff66 3.5px, transparent 4px);
+}
+.admin-switch:focus-visible { outline: 2px solid #ffff66; outline-offset: 2px; }
 .screen { flex: 1; display: flex; flex-direction: column; }
 .inner {
   width: 100%;

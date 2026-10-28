@@ -180,6 +180,7 @@
 
   /* ---------- play, result and win screens ---------- */
   $('btnGo').addEventListener('click', function () { send({ type: 'START_ROUND' }); });
+  $('btnAdmin').addEventListener('click', function () { ui.toggleAdmin(); if (view) ui.render(view); });
   $('btnShuffle').addEventListener('click', function () { send({ type: 'SHUFFLE_ORDER' }); });
   $('turnOrder').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-team]');

@@ -13,6 +13,7 @@
 
   var settings = R.cleanSettings(null);
   var setupKind = 'local';
+  var admin = false; // the host has switched on admin controls (anything with class admin-only)
 
   /* ---------- settings (optional per-device convenience) ---------- */
   function loadSettings() {
@@ -232,7 +233,7 @@
         if (v.isHost && i > 0) {
           var up = document.createElement('button');
           up.type = 'button';
-          up.className = 'up';
+          up.className = 'up admin-only';
           up.textContent = '↑';
           up.dataset.group = String(g);
           up.dataset.index = String(i);
@@ -331,10 +332,24 @@
     return '';
   }
 
+  /* ---------- admin controls ---------- */
+  // Hidden by default so the screen stays simple; the host can switch them on.
+  function toggleAdmin() {
+    admin = !admin;
+    document.body.classList.toggle('admin', admin);
+  }
+  // The switch only shows when the screen has admin controls on it: for now,
+  // the turn order before a round. Widen this when adding more.
+  function hasAdmin(v) { return v.isHost && v.online && v.phase === 'ready'; }
+  function paintAdmin(available) {
+    $('btnAdmin').hidden = !available;
+    $('btnAdmin').setAttribute('aria-checked', String(admin));
+  }
+
   function renderGame(v) {
     var playing = v.phase !== 'ready';
     $('ends').hidden = !playing;
-    $('dial').hidden = !playing;
+    $('dial').toggleAttribute('hidden', !playing); // an svg has no .hidden property
     if (v.card) {
       $('endLeft').textContent = v.card.left;
       $('endRight').textContent = v.card.right;
@@ -370,7 +385,7 @@
     var wait = '';
     if (!v.isHost && v.phase === 'ready') wait = 'Waiting for the host to start the round.';
     if (!v.isHost && v.phase === 'reveal') wait = v.over ? 'Waiting for the host to show the winner.' : 'Waiting for the host to start the next round.';
-    if (v.isHost && v.phase === 'ready' && v.online) wait = 'Set who is the psychic in what order, then start.';
+    if (v.isHost && v.phase === 'ready' && v.online && admin) wait = 'Set who is the psychic in what order, then start.';
     hint('gameHint', wait);
   }
 
@@ -464,6 +479,7 @@
     else if (v.phase === 'win') renderWin(v);
     else if (SCREEN_FOR[v.phase] === 's-game') renderGame(v);
 
+    paintAdmin(!(opts && opts.stay) && hasAdmin(v));
     if (!(opts && opts.stay)) show(SCREEN_FOR[v.phase]);
   }
 
@@ -471,6 +487,7 @@
   function reset() {
     last = null;
     roomCode = '';
+    paintAdmin(false);
     forget();
   }
 
@@ -479,7 +496,7 @@
 
   NN.ui = {
     $: $, show: show, render: render, reset: reset, setRoom: setRoom,
-    setupFor: setupFor, setupStatus: setupStatus, busy: busy,
+    setupFor: setupFor, setupStatus: setupStatus, busy: busy, toggleAdmin: toggleAdmin,
     dialValueAt: dialValueAt, turnDial: turnDial, shownDial: shownDial,
     settings: function () { return settings; }
   };

@@ -12,7 +12,7 @@
      net.js (online), ui.js (drawing screens, sounds), main.js (buttons). -->
 </head>
 <body>
-<nav class="site"><a href="../">~ ian's games ~</a></nav>
+<nav class="site"><a href="../">~ ian's games ~</a><button class="admin-switch" id="btnAdmin" type="button" role="switch" aria-checked="false" hidden>Admin</button></nav>
 <main id="app">
 
   <section class="screen" id="s-mode">
@@ -167,7 +167,7 @@
       <div class="board" id="turnOrder" hidden></div>
       <div class="actions">
         <button class="btn onteam" id="btnGo" type="button">Start round</button>
-        <button class="btn ghost" id="btnShuffle" type="button" hidden>Shuffle turn order</button>
+        <button class="btn ghost admin-only" id="btnShuffle" type="button" hidden>Shuffle turn order</button>
         <button class="btn onteam" id="btnPass" type="button" hidden>Guessed it. Pass the phone</button>
         <p class="hint" id="playHint" hidden></p>
       </div>
