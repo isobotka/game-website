@@ -45,6 +45,15 @@
       <p class="mono" id="setupKicker">One phone</p>
       <h2>Game settings</h2>
 
+      <fieldset id="modeField">
+        <legend>Players</legend>
+        <div class="seg two">
+          <label class="chip"><input class="vh" type="radio" name="mode" id="mode-teams" value="teams"><span>Two teams</span></label>
+          <label class="chip"><input class="vh" type="radio" name="mode" id="mode-solo" value="solo"><span>No teams</span></label>
+        </div>
+        <p class="hint" id="modeHint"></p>
+      </fieldset>
+
       <fieldset>
         <legend>Phrase types</legend>
         <div class="chips" id="cats"></div>
@@ -62,7 +71,7 @@
       </fieldset>
 
       <fieldset>
-        <legend>Play to</legend>
+        <legend id="targetLegend">Play to</legend>
         <div class="seg" id="targetSeg">
           <label class="chip"><input class="vh" type="radio" name="target" id="tgt-5" value="5"><span>5 points</span></label>
           <label class="chip"><input class="vh" type="radio" name="target" id="tgt-7" value="7"><span>7 points</span></label>
@@ -115,7 +124,7 @@
         <input class="input" id="myName" type="text" maxlength="16" autocomplete="nickname" enterkeyhint="done">
       </label>
 
-      <fieldset>
+      <fieldset id="teamField">
         <legend>Your team</legend>
         <div class="seg two">
           <label class="chip"><input class="vh" type="radio" name="team" id="team-0" value="0"><span>Teal</span></label>

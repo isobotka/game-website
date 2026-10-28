@@ -12,6 +12,7 @@
   function has(obj, key) { return Object.prototype.hasOwnProperty.call(obj, key); }
 
   var settings = R.cleanSettings(null);
+  var setupKind = 'local';
 
   /* ---------- settings (optional per-device convenience) ---------- */
   function loadSettings() {
@@ -71,6 +72,14 @@
     $('btnStart').disabled = (n === 0);
     var r = R.LENGTHS[settings.length];
     $('lengthHint').textContent = r[0] + ' to ' + r[1] + ' seconds, picked at random each round.';
+    var solo = settings.mode === 'solo' && setupKind !== 'local';
+    $('modeHint').textContent = settings.mode === 'solo'
+      ? 'The potato goes round everyone. Holding it at the buzzer gets you a strike. Fewest strikes wins.'
+      : 'The potato goes back and forth between Teal and Magenta.';
+    $('targetLegend').textContent = solo ? 'Game ends at' : 'Play to';
+    R.TARGETS.forEach(function (n) {
+      $('tgt-' + n).nextElementSibling.textContent = n + (solo ? ' strikes' : ' points');
+    });
   }
 
   function wireRadios(name, onPick) {
@@ -90,6 +99,10 @@
     buildCats();
     $('len-' + settings.length).checked = true;
     $('tgt-' + settings.target).checked = true;
+    $('mode-' + settings.mode).checked = true;
+    wireRadios('mode', function (v) {
+      if (R.MODES.indexOf(v) > -1) { settings.mode = v; refreshSetup(); saveSettings(); }
+    });
     $('sound').checked = settings.sound;
     $('lobbySound').checked = settings.sound;
     wireRadios('length', function (v) {
@@ -106,6 +119,8 @@
 
   // kind: 'local', 'host-new' (before the room exists) or 'host-room'
   function setupFor(kind) {
+    setupKind = kind;
+    $('modeField').hidden = (kind === 'local');
     $('setupKicker').textContent = kind === 'local' ? 'One phone' : 'Online room';
     $('btnStart').textContent = kind === 'local' ? 'Start game' : kind === 'host-new' ? 'Open a room' : 'Back to room';
     $('btnSetupBack').hidden = (kind === 'host-room');
@@ -230,14 +245,28 @@
     if (text) $(id).textContent = text;
   }
 
+  function strikes(n) { return n + (n === 1 ? ' strike' : ' strikes'); }
+  function myStanding(v) {
+    for (var i = 0; i < v.standings.length; i++) if (v.standings[i].id === v.me) return v.standings[i];
+    return null;
+  }
+  function listNames(names) {
+    return names.length < 2 ? names.join('') : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+  }
+
   function paintMiniScore(v) {
+    if (v.solo) {
+      var mine = myStanding(v);
+      $('miniScore').textContent = mine ? 'You: ' + strikes(mine.strikes) : '';
+      return;
+    }
     $('miniScore').textContent = teamName(0) + ' ' + v.scores[0] + ' : ' + v.scores[1] + ' ' + teamName(1);
   }
 
   function renderReady(v) {
-    tint('s-play', v.starter);
+    tint('s-play', v.solo ? 0 : v.starter);
     paintMiniScore(v);
-    $('who').textContent = teamName(v.starter) + ' team starts';
+    $('who').textContent = v.solo ? (v.order[0].length ? v.order[0][0].name + ' starts' : '') : teamName(v.starter) + ' team starts';
     $('cat').textContent = 'Round ' + v.round;
     setPhrase('Ready?', 'l');
     $('btnGo').hidden = !v.isHost;
@@ -254,12 +283,14 @@
     box.textContent = '';
     box.hidden = !v.online;
     if (!v.online) return;
-    TEAMS.forEach(function (team, t) {
+    v.order.forEach(function (ids, t) {
+      var team = TEAMS[t];
       var col = document.createElement('div');
       col.className = 'score ' + team.cls;
+      if (v.solo) col.style.gridColumn = '1 / -1';
       var name = document.createElement('span');
       name.className = 'name';
-      name.textContent = team.name + (t === v.starter ? ' · goes first' : '');
+      name.textContent = v.solo ? 'Turn order' : team.name + (t === v.starter ? ' · goes first' : '');
       var list = document.createElement('ol');
       v.order[t].forEach(function (p, i) {
         var li = document.createElement('li');
@@ -286,7 +317,7 @@
   }
 
   function renderPlaying(v) {
-    tint('s-play', v.holding);
+    tint('s-play', v.solo ? v.passes % 2 : v.holding);
     paintMiniScore(v);
     $('btnGo').hidden = true;
     $('btnShuffle').hidden = true;
@@ -301,14 +332,15 @@
       setPhrase(v.phrase.text);
       return;
     }
-    $('who').textContent = teamName(v.holding) + ' has the potato';
+    $('who').textContent = v.solo ? (v.describerName || 'Nobody') + ' has the potato' : teamName(v.holding) + ' has the potato';
     $('btnPass').textContent = 'Got it. Pass the potato';
     if (v.canDescribe) {
       $('cat').textContent = 'You describe · ' + v.phrase.cat;
       setPhrase(v.phrase.text);
     } else {
-      $('cat').textContent = v.describerName ? v.describerName + ' is describing' : teamName(v.holding) + ' team';
-      setPhrase(v.myTeam === v.holding ? 'Guess!' : v.myTeam === null ? 'Watching' : 'Get ready', 'l');
+      $('cat').textContent = v.describerName ? v.describerName + ' is describing' : v.solo ? '' : teamName(v.holding) + ' team';
+      if (v.solo) setPhrase(myStanding(v) ? 'Guess!' : 'Watching', 'l');
+      else setPhrase(v.myTeam === v.holding ? 'Guess!' : v.myTeam === null ? 'Watching' : 'Get ready', 'l');
     }
   }
 
@@ -338,12 +370,52 @@
     });
   }
 
+  // Solo: everyone's strikes, fewest first.
+  function renderStandings(el, v) {
+    el.textContent = '';
+    var box = document.createElement('div');
+    box.className = 'score t0';
+    box.style.gridColumn = '1 / -1';
+    var name = document.createElement('span');
+    name.className = 'name';
+    name.textContent = 'Strikes · out at ' + v.settings.target;
+    var list = document.createElement('ul');
+    v.standings.forEach(function (p) {
+      var li = document.createElement('li');
+      li.className = 'standing';
+      var who = document.createElement('span');
+      who.textContent = p.name;
+      if (p.id === v.me) who.className = 'you';
+      var pips = document.createElement('span');
+      pips.className = 'pips';
+      pips.setAttribute('aria-label', strikes(p.strikes));
+      for (var k = 0; k < v.settings.target; k++) {
+        var pip = document.createElement('span');
+        pip.className = 'pip' + (k < p.strikes ? ' on' : '');
+        pips.appendChild(pip);
+      }
+      li.appendChild(who);
+      li.appendChild(pips);
+      list.appendChild(li);
+    });
+    box.appendChild(name);
+    box.appendChild(list);
+    el.appendChild(box);
+  }
+
   function renderResult(v) {
-    var winner = 1 - v.loser;
-    var thing = v.online ? 'potato' : 'phone';
     $('resTitle').textContent = 'Time is up';
-    $('resDetail').textContent = teamName(v.loser) + ' team was holding the ' + thing + '. ' + teamName(winner) + ' team scores a point.';
-    renderBoard($('board'), v);
+    if (v.solo) {
+      $('resDetail').textContent = v.loserName
+        ? v.loserName + ' was holding the potato and gets a strike.'
+        : 'Nobody was holding the potato. No strike this round.';
+      renderStandings($('board'), v);
+    } else {
+      var winner = 1 - v.loser;
+      var thing = v.online ? 'potato' : 'phone';
+      $('resDetail').textContent = teamName(v.loser) + ' team was holding the ' + thing + '. ' + teamName(winner) + ' team scores a point.';
+      renderBoard($('board'), v);
+    }
     $('btnNext').textContent = v.over ? 'See the winner' : 'Next round';
     $('btnNext').hidden = !v.isHost;
     $('btnEnd').hidden = !v.isHost;
@@ -351,23 +423,51 @@
   }
 
   function renderWin(v) {
+    $('btnAgain').hidden = !v.isHost;
+    $('btnSettings').hidden = !v.isHost;
+    hint('winHint', v.isHost ? '' : 'Waiting for the host to start a new game.');
+    if (v.solo) {
+      tint('s-win', 0);
+      var best = v.standings.length ? v.standings[0].strikes : 0;
+      var winners = v.standings.filter(function (p) { return p.strikes === best; }).map(function (p) { return p.name; });
+      $('winTitle').textContent = listNames(winners) + (winners.length === 1 ? ' wins' : ' win');
+      $('winScore').textContent = 'Out at ' + v.settings.target + '. Strikes: ' +
+        v.standings.map(function (p) { return p.name + ' ' + p.strikes; }).join(', ') + '.';
+      return;
+    }
     var w = v.scores[0] > v.scores[1] ? 0 : 1;
     tint('s-win', w);
     $('winTitle').textContent = teamName(w) + ' team wins';
     $('winScore').textContent = 'First to ' + v.settings.target + '. Final score ' + teamName(0) + ' ' + v.scores[0] + ', ' + teamName(1) + ' ' + v.scores[1] + '.';
-    $('btnAgain').hidden = !v.isHost;
-    $('btnSettings').hidden = !v.isHost;
-    hint('winHint', v.isHost ? '' : 'Waiting for the host to start a new game.');
   }
 
   function renderLobby(v) {
     $('lobbyCode').textContent = roomCode;
     $('team-0').checked = v.myTeam === 0;
     $('team-1').checked = v.myTeam === 1;
+    $('teamField').hidden = v.solo;
 
     var box = $('lobbyTeams');
     box.textContent = '';
-    TEAMS.forEach(function (team, t) {
+    if (v.solo) {
+      var all = document.createElement('div');
+      all.className = 'score t0';
+      all.style.gridColumn = '1 / -1';
+      var title = document.createElement('span');
+      title.className = 'name';
+      title.textContent = 'Players · no teams';
+      var ul = document.createElement('ul');
+      v.players.forEach(function (p) {
+        var li = document.createElement('li');
+        li.textContent = p.name;
+        if (p.id === v.me) li.className = 'you';
+        ul.appendChild(li);
+      });
+      all.appendChild(title);
+      all.appendChild(ul);
+      box.appendChild(all);
+    }
+    (v.solo ? [] : TEAMS).forEach(function (team, t) {
       var col = document.createElement('div');
       col.className = 'score ' + team.cls;
       var name = document.createElement('span');
@@ -391,7 +491,7 @@
       col.appendChild(list);
       box.appendChild(col);
     });
-    var picking = v.players.filter(function (p) { return p.team === null; }).map(function (p) { return p.name; });
+    var picking = v.solo ? [] : v.players.filter(function (p) { return p.team === null; }).map(function (p) { return p.name; });
     if (picking.length) {
       var p = document.createElement('p');
       p.className = 'hint';
@@ -401,14 +501,20 @@
     }
 
     var r = R.LENGTHS[v.settings.length];
-    $('lobbySettings').textContent = 'Rounds of ' + r[0] + ' to ' + r[1] + ' seconds. First to ' + v.settings.target +
-      ' points. ' + R.deckSize(v.settings) + ' phrases.';
+    $('lobbySettings').textContent = 'Rounds of ' + r[0] + ' to ' + r[1] + ' seconds. ' +
+      (v.solo ? 'No teams, game ends at ' + v.settings.target + ' strikes. ' : 'First to ' + v.settings.target + ' points. ') +
+      R.deckSize(v.settings) + ' phrases.';
 
     $('btnLobbyStart').hidden = !v.isHost;
     $('btnLobbyStart').disabled = !v.canStart;
     $('btnLobbySettings').hidden = !v.isHost;
     var status;
-    if (v.myTeam === null) status = 'Pick a team.';
+    if (v.solo) {
+      if (!v.isHost) status = 'Waiting for the host to start.';
+      else if (!v.canStart) status = 'Needs at least two players.';
+      else status = 'Start when everyone is in. Everyone takes turns describing.';
+    }
+    else if (v.myTeam === null) status = 'Pick a team.';
     else if (!v.isHost) status = 'Waiting for the host to start.';
     else if (!v.canStart) status = 'Each team needs at least one player.';
     else status = 'Start when everyone is in. Each team takes turns describing.';
@@ -434,7 +540,7 @@
       clock.endsAt = performance.now() + v.msLeft;
       clock.total = v.roundMs || 1;
       if (!wasPlaying) { lockScreen(); tick(); }
-      else if (was.holding !== v.holding) tone(520, 0.05, 'triangle', 0.12);
+      else if (was.passes !== v.passes) tone(520, 0.05, 'triangle', 0.12);
     } else if (wasPlaying) {
       stopBeeps();
       unlockScreen();

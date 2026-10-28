@@ -9,6 +9,7 @@
   var LENGTHS = { short: [30, 50], medium: [45, 75], long: [60, 100] };
   var TARGETS = [5, 7, 10];
   var TEAMS = [{ name: 'Teal', cls: 't0' }, { name: 'Magenta', cls: 't1' }];
+  var MODES = ['teams', 'solo'];  // solo: no teams, everyone for themselves (online only)
   var HOST = 'host';     // the host's player id, also the single device in local play
   var TIMER = '@timer';  // sender of the buzzer, only the host's timer uses it
   var MAX_PLAYERS = 16;
@@ -17,7 +18,7 @@
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
   function cleanSettings(s) {
-    var out = { cats: PP.DECK_KEYS.slice(), length: 'medium', target: 7, sound: false };
+    var out = { cats: PP.DECK_KEYS.slice(), length: 'medium', target: 7, sound: false, mode: 'teams' };
     if (!s || typeof s !== 'object') return out;
     if (Array.isArray(s.cats)) {
       var cats = s.cats.filter(function (k) { return typeof k === 'string' && has(PP.DECKS, k); });
@@ -26,6 +27,7 @@
     if (typeof s.length === 'string' && has(LENGTHS, s.length)) out.length = s.length;
     if (TARGETS.indexOf(s.target) > -1) out.target = s.target;
     if (typeof s.sound === 'boolean') out.sound = s.sound;
+    if (MODES.indexOf(s.mode) > -1) out.mode = s.mode;
     return out;
   }
 
@@ -66,8 +68,10 @@
     return null;
   }
   function teamOf(s, t) { return s.players.filter(function (p) { return p.team === t; }); }
+  function isSolo(s) { return s.online && s.settings.mode === 'solo'; }
 
   // The next describer on team t, taking turns in the team's order.
+  // Solo has one shared order, number 0.
   function pickDescriber(s, t) {
     if (!s.online) return null;
     var order = s.order[t];
@@ -79,8 +83,7 @@
 
   // Take a player out of the turn order without skipping whoever is up next.
   function dropFromOrder(s, id) {
-    [0, 1].forEach(function (t) {
-      var order = s.order[t];
+    s.order.forEach(function (order, t) {
       var i = order.indexOf(id);
       if (i < 0) return;
       var next = s.turn[t] % order.length;
@@ -91,8 +94,7 @@
 
   // Between rounds: whoever was up next goes first, so turns stay even.
   function rotateOrder(s) {
-    [0, 1].forEach(function (t) {
-      var order = s.order[t];
+    s.order.forEach(function (order, t) {
       var k = order.length ? s.turn[t] % order.length : 0;
       s.order[t] = order.slice(k).concat(order.slice(0, k));
       s.turn[t] = 0;
@@ -107,6 +109,7 @@
 
   function canStart(s) {
     if (deckSize(s.settings) === 0) return false;
+    if (isSolo(s)) return s.players.length >= 2;
     return !s.online || (teamOf(s, 0).length > 0 && teamOf(s, 1).length > 0);
   }
 
@@ -118,7 +121,9 @@
       settings: cleanSettings(null),
       players: [],                         // [{ id, name, team: 0 | 1 | null }]
       scores: [0, 0], round: 1, starter: 0, holding: 0, loser: 0, over: false,
-      order: [[], []], turn: [0, 0], describer: null,   // order: player ids per team, in describing order
+      strikes: {},                         // solo: player id -> strikes, for everyone in this game
+      order: [[], []], turn: [0, 0], describer: null,   // order: player ids per team (one list in solo), in describing order
+      passes: 0,                           // passes this round, solo uses it to flip the screen colour
       deck: [], idx: 0, phrase: null,
       roundMs: 0, roundStartedAt: 0
     };
@@ -143,6 +148,7 @@
         if (!me) return state;
         s.players = s.players.filter(function (p) { return p.id !== a.from; });
         dropFromOrder(s, a.from);
+        delete s.strikes[a.from];
         if (s.phase === 'playing' && s.describer === a.from) s.describer = pickDescriber(s, s.holding);
         return s;
 
@@ -168,14 +174,20 @@
         s.round = 1;
         s.over = false;
         s.turn = [0, 0];
-        s.order = [0, 1].map(function (t) { return teamOf(s, t).map(function (p) { return p.id; }); });
+        s.strikes = {};
+        if (isSolo(s)) {
+          s.order = [s.players.map(function (p) { return p.id; })];
+          s.players.forEach(function (p) { s.strikes[p.id] = 0; });
+        } else {
+          s.order = [0, 1].map(function (t) { return teamOf(s, t).map(function (p) { return p.id; }); });
+        }
         s.deck = buildDeck(s.settings);
         s.idx = 0;
         s.phase = 'ready';
         return s;
 
       case 'SET_ORDER':
-        if (!isHost || s.phase !== 'ready' || (a.team !== 0 && a.team !== 1)) return state;
+        if (!isHost || s.phase !== 'ready' || !(a.team === 0 || (a.team === 1 && !isSolo(s)))) return state;
         if (!sameMembers(s.order[a.team], a.order)) return state;
         s.order[a.team] = a.order.slice();
         return s;
@@ -190,7 +202,8 @@
         var r = LENGTHS[s.settings.length];
         s.roundMs = Math.round((r[0] + Math.random() * (r[1] - r[0])) * 1000);
         s.roundStartedAt = a.now;
-        s.holding = s.starter;
+        s.holding = isSolo(s) ? 0 : s.starter;
+        s.passes = 0;
         s.describer = pickDescriber(s, s.holding);
         nextPhrase(s);
         s.phase = 'playing';
@@ -199,7 +212,8 @@
 
       case 'PASS':
         if (s.phase !== 'playing' || (s.online && a.from !== s.describer)) return state;
-        s.holding = 1 - s.holding;
+        if (!isSolo(s)) s.holding = 1 - s.holding;
+        s.passes += 1;
         s.describer = pickDescriber(s, s.holding);
         nextPhrase(s);
         return s;
@@ -211,6 +225,14 @@
 
       case 'BUZZ': {
         if (a.from !== TIMER || s.phase !== 'playing') return state;
+        if (isSolo(s)) {
+          s.loser = s.describer;
+          if (has(s.strikes, s.loser)) s.strikes[s.loser] += 1;
+          s.over = s.loser !== null && s.strikes[s.loser] >= s.settings.target;
+          s.describer = null;
+          s.phase = 'result';
+          return s;
+        }
         s.loser = s.holding;
         var winner = 1 - s.loser;
         s.scores[winner] += 1;
@@ -244,8 +266,10 @@
     var me = findPlayer(s, id);
     var describer = findPlayer(s, s.describer);
     var canDescribe = s.phase === 'playing' && (!s.online || s.describer === id);
+    var loser = isSolo(s) ? findPlayer(s, s.loser) : null;
     return {
       online: s.online,
+      solo: isSolo(s),
       phase: s.phase,
       settings: s.settings,
       players: s.players,
@@ -255,6 +279,12 @@
       holding: s.holding,
       loser: s.loser,
       over: s.over,
+      // solo: everyone in this game, fewest strikes first
+      standings: s.players.filter(function (p) { return has(s.strikes, p.id); })
+        .map(function (p) { return { id: p.id, name: p.name, strikes: s.strikes[p.id] }; })
+        .sort(function (x, y) { return x.strikes - y.strikes; }),
+      loserName: loser ? loser.name : '',
+      passes: s.passes,
       order: s.order.map(function (ids) {
         return ids.map(function (pid) { var p = findPlayer(s, pid); return { id: pid, name: p ? p.name : '' }; });
       }),
@@ -271,7 +301,7 @@
   }
 
   PP.rules = {
-    LENGTHS: LENGTHS, TARGETS: TARGETS, TEAMS: TEAMS, HOST: HOST, TIMER: TIMER,
+    LENGTHS: LENGTHS, TARGETS: TARGETS, TEAMS: TEAMS, MODES: MODES, HOST: HOST, TIMER: TIMER,
     cleanSettings: cleanSettings, deckSize: deckSize,
     newState: newState, reduce: reduce, viewFor: viewFor
   };
