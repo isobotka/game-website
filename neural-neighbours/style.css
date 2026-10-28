@@ -204,7 +204,7 @@ body:has(.tint:not([hidden])) .version { color: rgba(255,255,255,.8); }
 .dial .cover { fill: var(--line); opacity: .55; }
 .dial .w0 { fill: var(--ring0); } .dial .w1 { fill: var(--ring1); } .dial .w2 { fill: var(--ring2); }
 .dial .wnum { font-family: var(--mono); font-size: 7px; fill: #12151F; text-anchor: middle; dominant-baseline: middle; }
-.dial .needle { fill: var(--fg); }
+.dial .needle { stroke: var(--fg); stroke-width: 3; stroke-linecap: round; }
 .dial .hub { fill: var(--fg); }
 .dial.live { cursor: grab; }
 .dial .knob { fill: var(--fg); }

@@ -140,26 +140,11 @@
     svg.setAttribute('tabindex', live ? '0' : '-1');
     if (value !== null) {
       svg.setAttribute('aria-valuenow', String(Math.round(value)));
-      svg.appendChild(el('polygon', { 'class': 'needle', points: needle(value) }));
-      var k = pt(value, RAD + KNOB_GAP).split(' ');
+      svg.appendChild(el('line', { 'class': 'needle', x1: CX, y1: CY, x2: pt(value, RAD - 8).split(' ')[0], y2: pt(value, RAD - 8).split(' ')[1] }));
+      var k = pt(value, RAD - 8).split(' ');
       svg.appendChild(el('circle', { 'class': 'knob', cx: k[0], cy: k[1], r: live ? 7 : 5 }));
     }
     svg.appendChild(el('circle', { 'class': 'hub', cx: CX, cy: CY, r: 6 }));
-  }
-
-  // A straight needle from the hub that tapers to a point at the rim. The knob
-  // for dragging sits just outside the rim, so it never covers the target.
-  var NEEDLE = { length: RAD, width: 4, taper: 12 };
-  var KNOB_GAP = 9;
-  function needle(value) {
-    var a = Math.PI * (1 - value / 100);
-    var ux = Math.cos(a), uy = -Math.sin(a);   // along the needle
-    var nx = -uy, ny = ux;                      // across it
-    var h = NEEDLE.width / 2, shaft = NEEDLE.length - NEEDLE.taper;
-    function at(along, across) {
-      return (CX + ux * along + nx * across).toFixed(2) + ',' + (CY + uy * along + ny * across).toFixed(2);
-    }
-    return [at(0, h), at(shaft, h), at(NEEDLE.length, 0), at(shaft, -h), at(0, -h)].join(' ');
   }
 
   function dialValue(v) {
