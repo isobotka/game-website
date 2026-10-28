@@ -241,15 +241,56 @@
     $('cat').textContent = 'Round ' + v.round;
     setPhrase('Ready?', 'l');
     $('btnGo').hidden = !v.isHost;
+    $('btnShuffle').hidden = !(v.isHost && v.online);
+    renderOrder(v);
     $('btnPass').hidden = true;
     $('btnSkip').hidden = true;
-    hint('playHint', v.isHost ? '' : 'Waiting for the host to start the round.');
+    hint('playHint', v.isHost ? (v.online ? 'Set who describes in what order, then start.' : '') : 'Waiting for the host to start the round.');
+  }
+
+  // Who describes in what order this round. The host can move players up.
+  function renderOrder(v) {
+    var box = $('turnOrder');
+    box.textContent = '';
+    box.hidden = !v.online;
+    if (!v.online) return;
+    TEAMS.forEach(function (team, t) {
+      var col = document.createElement('div');
+      col.className = 'score ' + team.cls;
+      var name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = team.name + (t === v.starter ? ' · goes first' : '');
+      var list = document.createElement('ol');
+      v.order[t].forEach(function (p, i) {
+        var li = document.createElement('li');
+        var who = document.createElement('span');
+        who.textContent = p.name;
+        if (p.id === v.me) who.className = 'you';
+        li.appendChild(who);
+        if (v.isHost && i > 0) {
+          var up = document.createElement('button');
+          up.type = 'button';
+          up.className = 'up';
+          up.textContent = '↑';
+          up.dataset.team = String(t);
+          up.dataset.index = String(i);
+          up.setAttribute('aria-label', 'Move ' + p.name + ' up');
+          li.appendChild(up);
+        }
+        list.appendChild(li);
+      });
+      col.appendChild(name);
+      col.appendChild(list);
+      box.appendChild(col);
+    });
   }
 
   function renderPlaying(v) {
     tint('s-play', v.holding);
     paintMiniScore(v);
     $('btnGo').hidden = true;
+    $('btnShuffle').hidden = true;
+    $('turnOrder').hidden = true;
     $('btnPass').hidden = !v.canDescribe;
     $('btnSkip').hidden = !v.canDescribe;
     hint('playHint', '');

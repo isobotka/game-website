@@ -180,6 +180,15 @@
 
   /* ---------- play, result and win screens ---------- */
   $('btnGo').addEventListener('click', function () { send({ type: 'START_ROUND' }); });
+  $('btnShuffle').addEventListener('click', function () { send({ type: 'SHUFFLE_ORDER' }); });
+  $('turnOrder').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-team]');
+    if (!b || !view) return;
+    var t = parseInt(b.dataset.team, 10), i = parseInt(b.dataset.index, 10);
+    var ids = view.order[t].map(function (p) { return p.id; });
+    ids.splice(i - 1, 0, ids.splice(i, 1)[0]);
+    send({ type: 'SET_ORDER', team: t, order: ids });
+  });
   $('btnPass').addEventListener('click', function () { send({ type: 'PASS' }); });
   $('btnSkip').addEventListener('click', function () { send({ type: 'SKIP' }); });
   $('btnNext').addEventListener('click', function () { send({ type: 'NEXT_ROUND' }); });

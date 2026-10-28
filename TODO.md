@@ -1,0 +1,1 @@
+- no teams mode everyone is on their own

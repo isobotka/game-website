@@ -168,7 +168,17 @@ legend { padding: 0; color: var(--muted); margin-bottom: 2px; }
 .room-code { font-family: var(--mono); font-weight: 500; font-size: clamp(3rem, 18vw, 5rem); letter-spacing: .15em; line-height: 1; }
 .seg.two { grid-template-columns: 1fr 1fr; }
 .score ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; font-weight: 600; overflow-wrap: anywhere; }
-.score li.you::after { content: ' (you)'; font-weight: 400; opacity: .8; }
+.score .you::after { content: ' (you)'; font-weight: 400; opacity: .8; }
+.tint .score { border: 2px solid rgba(255,255,255,.75); }
+.score ol { margin: 0; padding: 0; list-style: none; counter-reset: turn; display: grid; align-content: start; gap: 4px; font-weight: 600; overflow-wrap: anywhere; }
+.score ol li { counter-increment: turn; display: flex; align-items: center; gap: 6px; min-height: 36px; }
+.score ol li::before { content: counter(turn) '.'; font-family: var(--mono); font-size: .85rem; opacity: .8; min-width: 1.4em; }
+.score ol li > span { flex: 1; min-width: 0; }
+.score .up {
+  flex: none; width: 36px; height: 36px;
+  border: 2px solid rgba(255,255,255,.75); border-radius: 8px;
+  background: transparent; color: #fff; font: 700 1rem var(--display); cursor: pointer;
+}
 .score li.empty { font-weight: 400; opacity: .8; }
 .tint .hint { color: rgba(255,255,255,.9); }
 .hint.error { color: var(--t1-text); }

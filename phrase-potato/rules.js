@@ -67,14 +67,42 @@
   }
   function teamOf(s, t) { return s.players.filter(function (p) { return p.team === t; }); }
 
-  // The next describer on team t, taking turns in join order.
+  // The next describer on team t, taking turns in the team's order.
   function pickDescriber(s, t) {
     if (!s.online) return null;
-    var members = teamOf(s, t);
-    if (!members.length) return null;
-    var p = members[s.turn[t] % members.length];
+    var order = s.order[t];
+    if (!order.length) return null;
+    var id = order[s.turn[t] % order.length];
     s.turn[t] += 1;
-    return p.id;
+    return id;
+  }
+
+  // Take a player out of the turn order without skipping whoever is up next.
+  function dropFromOrder(s, id) {
+    [0, 1].forEach(function (t) {
+      var order = s.order[t];
+      var i = order.indexOf(id);
+      if (i < 0) return;
+      var next = s.turn[t] % order.length;
+      order.splice(i, 1);
+      s.turn[t] = i < next ? next - 1 : next;
+    });
+  }
+
+  // Between rounds: whoever was up next goes first, so turns stay even.
+  function rotateOrder(s) {
+    [0, 1].forEach(function (t) {
+      var order = s.order[t];
+      var k = order.length ? s.turn[t] % order.length : 0;
+      s.order[t] = order.slice(k).concat(order.slice(0, k));
+      s.turn[t] = 0;
+    });
+  }
+
+  // A new order for team t is only allowed if it has exactly the same players.
+  function sameMembers(order, ids) {
+    if (!Array.isArray(ids) || ids.length !== order.length) return false;
+    return order.every(function (id) { return ids.indexOf(id) > -1; });
   }
 
   function canStart(s) {
@@ -90,7 +118,7 @@
       settings: cleanSettings(null),
       players: [],                         // [{ id, name, team: 0 | 1 | null }]
       scores: [0, 0], round: 1, starter: 0, holding: 0, loser: 0, over: false,
-      turn: [0, 0], describer: null,
+      order: [[], []], turn: [0, 0], describer: null,   // order: player ids per team, in describing order
       deck: [], idx: 0, phrase: null,
       roundMs: 0, roundStartedAt: 0
     };
@@ -114,6 +142,7 @@
       case 'LEAVE':
         if (!me) return state;
         s.players = s.players.filter(function (p) { return p.id !== a.from; });
+        dropFromOrder(s, a.from);
         if (s.phase === 'playing' && s.describer === a.from) s.describer = pickDescriber(s, s.holding);
         return s;
 
@@ -139,9 +168,21 @@
         s.round = 1;
         s.over = false;
         s.turn = [0, 0];
+        s.order = [0, 1].map(function (t) { return teamOf(s, t).map(function (p) { return p.id; }); });
         s.deck = buildDeck(s.settings);
         s.idx = 0;
         s.phase = 'ready';
+        return s;
+
+      case 'SET_ORDER':
+        if (!isHost || s.phase !== 'ready' || (a.team !== 0 && a.team !== 1)) return state;
+        if (!sameMembers(s.order[a.team], a.order)) return state;
+        s.order[a.team] = a.order.slice();
+        return s;
+
+      case 'SHUFFLE_ORDER':
+        if (!isHost || s.phase !== 'ready') return state;
+        s.order.forEach(shuffle);
         return s;
 
       case 'START_ROUND': {
@@ -184,6 +225,7 @@
         if (s.over) { s.phase = 'win'; return s; }
         s.round += 1;
         s.starter = 1 - s.starter;
+        rotateOrder(s);
         s.phase = 'ready';
         return s;
 
@@ -213,6 +255,9 @@
       holding: s.holding,
       loser: s.loser,
       over: s.over,
+      order: s.order.map(function (ids) {
+        return ids.map(function (pid) { var p = findPlayer(s, pid); return { id: pid, name: p ? p.name : '' }; });
+      }),
       me: id,
       isHost: id === HOST,
       myTeam: me ? me.team : null,
