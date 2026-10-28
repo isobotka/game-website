@@ -115,11 +115,12 @@
     svg.appendChild(el('path', { 'class': 'face', d: 'M ' + (CX - RAD) + ' ' + CY + ' A ' + RAD + ' ' + RAD + ' 0 0 1 ' + (CX + RAD) + ' ' + CY + ' Z' }));
 
     if (v.target !== null) {
-      // One wedge per band: the bullseye (ring 0) in the middle, then outwards on both sides.
-      R.bandsAround(v.target).forEach(function (w) {
-        svg.appendChild(wedge(w.from, w.to, 'w' + w.ring));
-        var xy = pt((w.from + w.to) / 2, RAD - 10).split(' ');
-        svg.appendChild(el('text', { 'class': 'wnum', x: xy[0], y: xy[1] }, String(w.points)));
+      var b = v.band;
+      [[-2.5, -1.5, 2], [-1.5, -0.5, 3], [-0.5, 0.5, 4], [0.5, 1.5, 3], [1.5, 2.5, 2]].forEach(function (w) {
+        var from = Math.max(0, v.target + w[0] * b), to = Math.min(100, v.target + w[1] * b);
+        svg.appendChild(wedge(from, to, 'w' + w[2]));
+        var xy = pt((from + to) / 2, RAD - 10).split(' ');
+        svg.appendChild(el('text', { 'class': 'wnum', x: xy[0], y: xy[1] }, String(w[2])));
       });
     }
 

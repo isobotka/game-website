@@ -19,9 +19,7 @@
   var MODES = ['teams', 'solo'];
   var TARGETS = [5, 10, 15];  // teams: points to win
   var LAPS = [1, 2, 3];       // solo: times each player is the psychic
-  // The target: the bullseye, then each band out from it on both sides.
-  var POINTS = [4, 2, 1];
-  var WIDTHS = [5, 10, 10];   // width of each band on the 0 to 100 dial (the bullseye's is its whole width)
+  var BAND = 5;               // width of each scoring band on the 0 to 100 dial: 2, 3, 4, 3, 2
   var HOST = 'host';          // the host's player id, also the single device in local play
   var MAX_PLAYERS = 16;
 
@@ -47,28 +45,13 @@
     return Math.round(Math.max(0, Math.min(100, v)) * 10) / 10;
   }
 
-  // How far out from the target's middle each band ends.
-  var EDGES = [];
-  WIDTHS.forEach(function (w, i) { EDGES.push(i ? EDGES[i - 1] + w : w / 2); });
-  var REACH = EDGES[EDGES.length - 1];
-
-  // POINTS[0] for a bullseye, then the next bands out on either side.
+  // 4 for a bullseye, then 3 and 2 on either side.
   function pointsFor(guess, target) {
     var d = Math.abs(guess - target);
-    for (var i = 0; i < EDGES.length; i++) if (d <= EDGES[i]) return POINTS[i];
+    if (d <= BAND / 2) return 4;
+    if (d <= BAND * 1.5) return 3;
+    if (d <= BAND * 2.5) return 2;
     return 0;
-  }
-
-  // The bands to draw around a target, left to right: [{ from, to, points, ring }].
-  function bandsAround(target) {
-    var out = [];
-    for (var i = -(EDGES.length - 1); i <= EDGES.length - 1; i++) {
-      var ring = Math.abs(i);
-      var inner = ring ? EDGES[ring - 1] : -EDGES[0];
-      var near = i < 0 ? -EDGES[ring] : inner, far = i < 0 ? -inner : EDGES[ring];
-      out.push({ from: Math.max(0, target + near), to: Math.min(100, target + far), points: POINTS[ring], ring: ring });
-    }
-    return out;
   }
 
   /* ---------- cards ---------- */
@@ -287,8 +270,8 @@
           });
         }
         nextCard(s);
-        // Keep the whole target, every band of it, on the dial.
-        s.target = Math.round((REACH + Math.random() * (100 - 2 * REACH)) * 10) / 10;
+        // Keep the whole 2-3-4-3-2 target on the dial.
+        s.target = Math.round((BAND * 2.5 + Math.random() * (100 - BAND * 5)) * 10) / 10;
         s.dial = 50;
         s.steal = null;
         s.peek = false;
@@ -397,6 +380,7 @@
       card: s.card,
       target: showTarget ? s.target : null,
       peek: s.peek,
+      band: BAND,
       // The dial this device shows: the team's, or in solo your own. While guessing,
       // the device turning it shows its own value instead (see ui.js).
       dial: solo ? (mine ? mine.value : null) : s.dial,
@@ -429,7 +413,7 @@
   }
 
   NN.rules = {
-    TEAMS: TEAMS, MODES: MODES, POINTS: POINTS, bandsAround: bandsAround, TARGETS: TARGETS, LAPS: LAPS, HOST: HOST,
+    TEAMS: TEAMS, MODES: MODES, TARGETS: TARGETS, LAPS: LAPS, HOST: HOST,
     cleanSettings: cleanSettings, pointsFor: pointsFor,
     newState: newState, reduce: reduce, viewFor: viewFor
   };
