@@ -1,0 +1,2 @@
+- history of previous words down the left side
+- move the skip button to the top of the screen

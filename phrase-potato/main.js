@@ -191,6 +191,16 @@
   });
   $('btnPass').addEventListener('click', function () { send({ type: 'PASS' }); });
   $('btnSkip').addEventListener('click', function () { send({ type: 'SKIP' }); });
+
+  // Space bar passes too, for playing on a laptop. Held keys don't repeat it,
+  // and it never lands on a focused button (Skip) or a text box instead.
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== ' ' || e.repeat || $('s-play').hidden || $('btnPass').hidden) return;
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    e.preventDefault();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    send({ type: 'PASS' });
+  });
   $('btnNext').addEventListener('click', function () { send({ type: 'NEXT_ROUND' }); });
   $('btnEnd').addEventListener('click', function () { send({ type: 'END' }); });
   $('btnAgain').addEventListener('click', function () { send({ type: 'START_GAME' }); });
