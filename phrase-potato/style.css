@@ -184,6 +184,14 @@ legend { padding: 0; color: var(--muted); margin-bottom: 2px; }
 .tint .hint { color: rgba(255,255,255,.9); }
 .hint.error { color: var(--t1-text); }
 
+/* Version, bottom right on every screen. Sits in the page padding, under nothing. */
+.version {
+  position: fixed; right: max(8px, env(safe-area-inset-right, 0px)); bottom: max(4px, env(safe-area-inset-bottom, 0px));
+  font-family: var(--mono); font-size: .7rem; letter-spacing: .04em;
+  color: var(--muted); pointer-events: none;
+}
+body:has(.tint:not([hidden])) .version { color: rgba(255,255,255,.8); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
