@@ -19,7 +19,7 @@
   var MODES = ['teams', 'solo'];
   var TARGETS = [5, 10, 15];  // teams: points to win
   var LAPS = [1, 2, 3];       // solo: times each player is the psychic
-  var BAND = 5;               // width of each scoring band on the 0 to 100 dial: 2, 3, 4, 3, 2
+  var BAND = 5;               // width of the bullseye on the 0 to 100 dial; the 2 and 1 bands are twice as wide
   var HOST = 'host';          // the host's player id, also the single device in local play
   var MAX_PLAYERS = 16;
 
@@ -45,12 +45,12 @@
     return Math.round(Math.max(0, Math.min(100, v)) * 10) / 10;
   }
 
-  // 4 for a bullseye, then 3 and 2 on either side.
+  // 4 for a bullseye, then 2 and 1 on either side.
   function pointsFor(guess, target) {
     var d = Math.abs(guess - target);
     if (d <= BAND / 2) return 4;
-    if (d <= BAND * 1.5) return 3;
     if (d <= BAND * 2.5) return 2;
+    if (d <= BAND * 4.5) return 1;
     return 0;
   }
 
@@ -270,8 +270,8 @@
           });
         }
         nextCard(s);
-        // Keep the whole 2-3-4-3-2 target on the dial.
-        s.target = Math.round((BAND * 2.5 + Math.random() * (100 - BAND * 5)) * 10) / 10;
+        // Keep the whole 1-2-4-2-1 target on the dial.
+        s.target = Math.round((BAND * 4.5 + Math.random() * (100 - BAND * 9)) * 10) / 10;
         s.dial = 50;
         s.steal = null;
         s.peek = false;

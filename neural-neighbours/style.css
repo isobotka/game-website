@@ -192,7 +192,7 @@ legend { padding: 0; color: var(--muted); margin-bottom: 2px; }
 body:has(.tint:not([hidden])) .version { color: rgba(255,255,255,.8); }
 
 /* Round screen: the two ends of the card, the dial, and what is going on */
-:root { --b2: #F6C453; --b3: #F08A3E; --b4: #D9452B; }
+:root { --b1: #F6C453; --b2: #F08A3E; --b4: #D9452B; }
 #s-game .stage { justify-content: center; gap: 10px; }
 .ends { display: flex; justify-content: space-between; gap: 16px; font-weight: 800; font-size: clamp(1.2rem, 5.5vw, 1.7rem); line-height: 1.05; }
 .end { max-width: 48%; overflow-wrap: break-word; }
@@ -202,7 +202,7 @@ body:has(.tint:not([hidden])) .version { color: rgba(255,255,255,.8); }
 .dial { width: 100%; height: auto; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
 .dial .face { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
 .dial .cover { fill: var(--line); opacity: .55; }
-.dial .w2 { fill: var(--b2); } .dial .w3 { fill: var(--b3); } .dial .w4 { fill: var(--b4); }
+.dial .w1 { fill: var(--b1); } .dial .w2 { fill: var(--b2); } .dial .w4 { fill: var(--b4); }
 .dial .wnum { font-family: var(--mono); font-size: 7px; fill: #12151F; text-anchor: middle; dominant-baseline: middle; }
 .dial .needle { stroke: var(--fg); stroke-width: 3; stroke-linecap: round; }
 .dial .hub { fill: var(--fg); }

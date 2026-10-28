@@ -116,7 +116,7 @@
 
     if (v.target !== null) {
       var b = v.band;
-      [[-2.5, -1.5, 2], [-1.5, -0.5, 3], [-0.5, 0.5, 4], [0.5, 1.5, 3], [1.5, 2.5, 2]].forEach(function (w) {
+      [[-4.5, -2.5, 1], [-2.5, -0.5, 2], [-0.5, 0.5, 4], [0.5, 2.5, 2], [2.5, 4.5, 1]].forEach(function (w) {
         var from = Math.max(0, v.target + w[0] * b), to = Math.min(100, v.target + w[1] * b);
         svg.appendChild(wedge(from, to, 'w' + w[2]));
         var xy = pt((from + to) / 2, RAD - 10).split(' ');
@@ -139,7 +139,9 @@
     var live = !!v.canTurn;
     svg.classList.toggle('live', live);
     svg.setAttribute('tabindex', live ? '0' : '-1');
-    if (value !== null) {
+    // No needle while the psychic peeks at the target.
+    var peeking = v.phase === 'clue' && v.target !== null;
+    if (value !== null && !peeking) {
       svg.setAttribute('aria-valuenow', String(Math.round(value)));
       svg.appendChild(el('line', { 'class': 'needle', x1: CX, y1: CY, x2: pt(value, RAD - 8).split(' ')[0], y2: pt(value, RAD - 8).split(' ')[1] }));
       var k = pt(value, RAD - 8).split(' ');
