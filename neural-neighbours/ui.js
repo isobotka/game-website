@@ -115,12 +115,11 @@
     svg.appendChild(el('path', { 'class': 'face', d: 'M ' + (CX - RAD) + ' ' + CY + ' A ' + RAD + ' ' + RAD + ' 0 0 1 ' + (CX + RAD) + ' ' + CY + ' Z' }));
 
     if (v.target !== null) {
-      var b = v.band;
-      [[-2.5, -1.5, 2], [-1.5, -0.5, 3], [-0.5, 0.5, 4], [0.5, 1.5, 3], [1.5, 2.5, 2]].forEach(function (w) {
-        var from = Math.max(0, v.target + w[0] * b), to = Math.min(100, v.target + w[1] * b);
-        svg.appendChild(wedge(from, to, 'w' + w[2]));
-        var xy = pt((from + to) / 2, RAD - 10).split(' ');
-        svg.appendChild(el('text', { 'class': 'wnum', x: xy[0], y: xy[1] }, String(w[2])));
+      // One wedge per band: the bullseye (ring 0) in the middle, then outwards on both sides.
+      R.bandsAround(v.target).forEach(function (w) {
+        svg.appendChild(wedge(w.from, w.to, 'w' + w.ring));
+        var xy = pt((w.from + w.to) / 2, RAD - 10).split(' ');
+        svg.appendChild(el('text', { 'class': 'wnum', x: xy[0], y: xy[1] }, String(w.points)));
       });
     }
 
@@ -141,11 +140,26 @@
     svg.setAttribute('tabindex', live ? '0' : '-1');
     if (value !== null) {
       svg.setAttribute('aria-valuenow', String(Math.round(value)));
-      svg.appendChild(el('line', { 'class': 'needle', x1: CX, y1: CY, x2: pt(value, RAD - 8).split(' ')[0], y2: pt(value, RAD - 8).split(' ')[1] }));
-      var k = pt(value, RAD - 8).split(' ');
+      svg.appendChild(el('polygon', { 'class': 'needle', points: needle(value) }));
+      var k = pt(value, RAD + KNOB_GAP).split(' ');
       svg.appendChild(el('circle', { 'class': 'knob', cx: k[0], cy: k[1], r: live ? 7 : 5 }));
     }
     svg.appendChild(el('circle', { 'class': 'hub', cx: CX, cy: CY, r: 6 }));
+  }
+
+  // A straight needle from the hub that tapers to a point at the rim. The knob
+  // for dragging sits just outside the rim, so it never covers the target.
+  var NEEDLE = { length: RAD, width: 4, taper: 12 };
+  var KNOB_GAP = 9;
+  function needle(value) {
+    var a = Math.PI * (1 - value / 100);
+    var ux = Math.cos(a), uy = -Math.sin(a);   // along the needle
+    var nx = -uy, ny = ux;                      // across it
+    var h = NEEDLE.width / 2, shaft = NEEDLE.length - NEEDLE.taper;
+    function at(along, across) {
+      return (CX + ux * along + nx * across).toFixed(2) + ',' + (CY + uy * along + ny * across).toFixed(2);
+    }
+    return [at(0, h), at(shaft, h), at(NEEDLE.length, 0), at(shaft, -h), at(0, -h)].join(' ');
   }
 
   function dialValue(v) {
