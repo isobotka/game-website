@@ -146,8 +146,8 @@
     var peeking = v.phase === 'clue' && v.target !== null;
     if (value !== null && !peeking) {
       svg.setAttribute('aria-valuenow', String(Math.round(value)));
-      svg.appendChild(el('line', { 'class': 'needle', x1: CX, y1: CY, x2: pt(value, RAD - 8).split(' ')[0], y2: pt(value, RAD - 8).split(' ')[1] }));
-      var k = pt(value, RAD - 8).split(' ');
+      var k = pt(value, RAD).split(' ');
+      svg.appendChild(el('line', { 'class': 'needle', x1: CX, y1: CY, x2: k[0], y2: k[1] }));
       svg.appendChild(el('circle', { 'class': 'knob', cx: k[0], cy: k[1], r: live ? 7 : 5 }));
     }
     svg.appendChild(el('circle', { 'class': 'hub', cx: CX, cy: CY, r: 6 }));
