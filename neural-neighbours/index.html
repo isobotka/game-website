@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Neural Neighbours</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+<!-- Screens are below; style.css has the look. Code: decks.js (spectrum cards), rules.js (game rules),
+     net.js (online), ui.js (drawing screens and the dial), main.js (buttons and dragging). -->
+</head>
+<body>
+<main id="app">
+
+  <section class="screen" id="s-mode">
+    <div class="inner">
+      <h1>Neural Neighbours</h1>
+      <p class="lede">Read each other's minds. Somewhere between two ideas is a hidden target.</p>
+
+      <hr class="bar-rule">
+
+      <ol class="rules">
+        <li>The psychic sees where the target is, between ends like <em>Cold</em> and <em>Hot</em>.</li>
+        <li>They say one clue out loud that sits at that spot, like <em>Bath water</em>.</li>
+        <li>Everyone else turns the dial to where they think the clue belongs. Closer scores more: 4, 3 or 2.</li>
+      </ol>
+
+      <hr class="bar-rule">
+
+      <p class="tip"><strong>Tip:</strong> Clues can be anything: a word, a person, a film. Just no numbers.</p>
+
+      <div class="spacer"></div>
+      <div class="actions">
+        <button class="btn solid" id="btnLocal" type="button">Play on one phone</button>
+        <button class="btn ghost" id="btnHost" type="button">Host an online game</button>
+        <button class="btn ghost" id="btnJoin" type="button">Join an online game</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-setup" hidden>
+    <div class="inner">
+      <p class="mono" id="setupKicker">One phone</p>
+      <h2>Game settings</h2>
+
+      <fieldset id="modeField">
+        <legend>Players</legend>
+        <div class="seg two">
+          <label class="chip"><input class="vh" type="radio" name="mode" id="mode-teams" value="teams"><span>Two teams</span></label>
+          <label class="chip"><input class="vh" type="radio" name="mode" id="mode-solo" value="solo"><span>No teams</span></label>
+        </div>
+        <p class="hint" id="modeHint"></p>
+      </fieldset>
+
+      <fieldset id="targetField">
+        <legend>Play to</legend>
+        <div class="seg">
+          <label class="chip"><input class="vh" type="radio" name="target" id="tgt-5" value="5"><span>5 points</span></label>
+          <label class="chip"><input class="vh" type="radio" name="target" id="tgt-10" value="10"><span>10 points</span></label>
+          <label class="chip"><input class="vh" type="radio" name="target" id="tgt-15" value="15"><span>15 points</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset id="lapsField">
+        <legend>Everyone is the psychic</legend>
+        <div class="seg">
+          <label class="chip"><input class="vh" type="radio" name="laps" id="laps-1" value="1"><span>Once</span></label>
+          <label class="chip"><input class="vh" type="radio" name="laps" id="laps-2" value="2"><span>Twice</span></label>
+          <label class="chip"><input class="vh" type="radio" name="laps" id="laps-3" value="3"><span>3 times</span></label>
+        </div>
+      </fieldset>
+
+      <p class="hint error" id="setupStatus" role="status"></p>
+      <div class="spacer"></div>
+      <div class="actions">
+        <button class="btn solid" id="btnStart" type="button">Start game</button>
+        <button class="btn ghost" id="btnSetupBack" type="button">Back</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-join" hidden>
+    <div class="inner">
+      <p class="mono">Online</p>
+      <h2>Join a game</h2>
+      <label class="field">
+        <span class="mono">Room code</span>
+        <input class="input code" id="joinCode" type="text" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go">
+      </label>
+      <p class="hint">Ask the host for the 4-letter code on their screen.</p>
+      <p class="hint error" id="joinStatus" role="status"></p>
+      <div class="spacer"></div>
+      <div class="actions">
+        <button class="btn solid" id="btnJoinGo" type="button">Join</button>
+        <button class="btn ghost" id="btnJoinBack" type="button">Back</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-lobby" hidden>
+    <div class="inner">
+      <p class="mono">Room code</p>
+      <p class="room-code" id="lobbyCode"></p>
+      <button class="btn ghost" id="btnShare" type="button">Copy invite link</button>
+
+      <label class="field">
+        <span class="mono">Your name</span>
+        <input class="input" id="myName" type="text" maxlength="16" autocomplete="nickname" enterkeyhint="done">
+      </label>
+
+      <fieldset id="teamField">
+        <legend>Your team</legend>
+        <div class="seg two">
+          <label class="chip"><input class="vh" type="radio" name="team" id="team-0" value="0"><span>Teal</span></label>
+          <label class="chip"><input class="vh" type="radio" name="team" id="team-1" value="1"><span>Magenta</span></label>
+        </div>
+      </fieldset>
+
+      <div class="board" id="lobbyTeams"></div>
+      <p class="hint" id="lobbySettings"></p>
+
+      <div class="spacer"></div>
+      <p class="hint" id="lobbyStatus" role="status"></p>
+      <div class="actions">
+        <button class="btn solid" id="btnLobbyStart" type="button">Start game</button>
+        <button class="btn ghost" id="btnLobbySettings" type="button">Change settings</button>
+        <button class="btn ghost" id="btnLeave" type="button">Leave room</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-game" hidden>
+    <div class="inner">
+      <div class="bar">
+        <span id="who"></span>
+        <span id="miniScore" aria-label="Score"></span>
+      </div>
+
+      <div class="stage">
+        <div class="ends" id="ends">
+          <span class="end left" id="endLeft"></span>
+          <span class="end right" id="endRight"></span>
+        </div>
+        <svg class="dial" id="dial" viewBox="-6 -6 212 112" role="slider" aria-label="Dial" aria-valuemin="0" aria-valuemax="100" tabindex="-1"></svg>
+        <p class="status" id="status" aria-live="polite"></p>
+      </div>
+
+      <div class="board" id="order" hidden></div>
+      <div class="board" id="results" hidden></div>
+
+      <div class="actions">
+        <button class="btn solid" id="btnGo" type="button" hidden>Start round</button>
+        <button class="btn ghost" id="btnShuffle" type="button" hidden>Shuffle psychic order</button>
+        <button class="btn ghost" id="btnPeek" type="button" hidden>Psychic: show the target</button>
+        <button class="btn solid" id="btnClue" type="button" hidden>I've said my clue</button>
+        <button class="btn solid" id="btnLock" type="button" hidden>Lock it in</button>
+        <div class="seg two" id="stealRow" hidden>
+          <button class="btn solid" id="btnLeft" type="button">&larr; Left</button>
+          <button class="btn solid" id="btnRight" type="button">Right &rarr;</button>
+        </div>
+        <button class="btn ghost" id="btnReveal" type="button" hidden>Reveal now</button>
+        <button class="btn solid" id="btnNext" type="button" hidden>Next round</button>
+        <button class="btn ghost" id="btnEnd" type="button" hidden>End game</button>
+        <p class="hint" id="gameHint" hidden></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen tint t0" id="s-win" hidden>
+    <div class="inner">
+      <p class="mono">Game over</p>
+      <h2 id="winTitle"></h2>
+      <p class="final" id="winScore"></p>
+      <div class="spacer"></div>
+      <div class="actions">
+        <button class="btn onteam" id="btnAgain" type="button">Play again</button>
+        <button class="btn ghost" id="btnSettings" type="button">Change settings</button>
+        <p class="hint" id="winHint" hidden>Waiting for the host to start a new game.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Bump this when you publish a change. -->
+<p class="version" aria-label="Version 1.0">v1.0</p>
+
+<script src="decks.js"></script>
+<script src="rules.js"></script>
+<script src="net.js"></script>
+<script src="ui.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

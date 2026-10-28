@@ -1,0 +1,4 @@
+- history of previous words down the left side
+- bonk feature
+- multiple words for points
+- joining active game didnt leave watching
