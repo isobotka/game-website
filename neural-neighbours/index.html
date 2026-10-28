@@ -12,6 +12,7 @@
      net.js (online), ui.js (drawing screens and the dial), main.js (buttons and dragging). -->
 </head>
 <body>
+<nav class="site"><a href="../">~ ian's games ~</a></nav>
 <main id="app">
 
   <section class="screen" id="s-mode">
@@ -22,20 +23,20 @@
       <hr class="bar-rule">
 
       <ol class="rules">
-        <li>The psychic sees where the target is, between ends like <em>Cold</em> and <em>Hot</em>.</li>
-        <li>They say one clue out loud that sits at that spot, like <em>Bath water</em>.</li>
-        <li>Everyone else turns the dial to where they think the clue belongs. Closer scores more: 4, 2 or 1.</li>
+        <li>The psychic gets a target, between ends like <em>Cold</em> and <em>Hot</em>.</li>
+        <li>They say a clue like <em>Bath water</em>.</li>
+        <li>Everyone else turns the dial to where they think the clue belongs.</li>
       </ol>
 
       <hr class="bar-rule">
 
-      <p class="tip"><strong>Tip:</strong> Clues can be anything: a word, a person, a film. Just no numbers.</p>
+      <p class="tip"><strong>Tip:</strong> Clues can be any word or phrase. Just no numbers.</p>
 
       <div class="spacer"></div>
       <div class="actions">
-        <button class="btn solid" id="btnLocal" type="button">Play on one phone</button>
-        <button class="btn ghost" id="btnHost" type="button">Host an online game</button>
-        <button class="btn ghost" id="btnJoin" type="button">Join an online game</button>
+        <button class="btn solid" id="btnLocal" type="button">Single Device</button>
+        <button class="btn solid" id="btnHost" type="button">Online: Host</button>
+        <button class="btn solid" id="btnJoin" type="button">Online: Join</button>
       </div>
     </div>
   </section>
@@ -185,7 +186,7 @@
 </main>
 
 <!-- Bump this when you publish a change. -->
-<p class="version" aria-label="Version 0.2">v0.2</p>
+<p class="version" aria-label="Version 0.3">v0.3</p>
 
 <script src="decks.js"></script>
 <script src="rules.js"></script>
