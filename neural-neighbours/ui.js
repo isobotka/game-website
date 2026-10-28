@@ -358,7 +358,7 @@
     $('btnGo').hidden = !(v.phase === 'ready' && v.isHost);
     $('btnShuffle').hidden = !(v.phase === 'ready' && v.isHost && v.online);
     $('btnPeek').hidden = !(v.phase === 'clue' && !v.online);
-    $('btnPeek').textContent = v.peek ? 'Hide the target' : 'Psychic: show the target';
+    $('btnPeek').textContent = v.peek ? 'Hide the target' : 'Psychic: Peek';
     $('btnClue').hidden = !v.canClue;
     $('btnLock').hidden = !v.canTurn;
     $('stealRow').hidden = !v.canSteal;

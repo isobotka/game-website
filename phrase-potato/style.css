@@ -13,6 +13,8 @@ body { margin: 0; }
   --fg: #12151F;
   --muted: #566074;
   --line: #C6CEDB;
+  --btn: #12151F;     /* solid buttons stay dark in both themes */
+  --btn-text: #EDF0F5;
   --focus: #2F5BEA;
   --t0: #0A7F73;
   --t1: #C81E64;
@@ -28,6 +30,7 @@ body { margin: 0; }
     --fg: #EEF1F7;
     --muted: #9AA4B8;
     --line: #2C3445;
+    --btn: #2C3445;
     --focus: #8FA8FF;
     --t0-text: #3CC9B8;
     --t1-text: #FF6B9F;
@@ -40,6 +43,7 @@ body { margin: 0; }
   --fg: #EEF1F7;
   --muted: #9AA4B8;
   --line: #2C3445;
+  --btn: #2C3445;
   --focus: #8FA8FF;
   --t0-text: #3CC9B8;
   --t1-text: #FF6B9F;
@@ -137,7 +141,7 @@ legend { padding: 0; color: var(--muted); margin-bottom: 2px; }
 }
 .btn:active { transform: scale(.985); }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
-.btn.solid { background: var(--fg); color: var(--bg); }
+.btn.solid { background: var(--btn); color: var(--btn-text); }
 .btn.onteam { background: #fff; color: var(--team); }
 .btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); min-height: 52px; font-size: 1rem; font-weight: 600; }
 .btn.slim { min-height: 52px; font-size: 1rem; font-weight: 600; }  /* a ghost button's size */
