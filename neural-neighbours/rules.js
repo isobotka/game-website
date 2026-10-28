@@ -270,8 +270,8 @@
           });
         }
         nextCard(s);
-        // Keep the whole 1-2-4-2-1 target on the dial.
-        s.target = Math.round((BAND * 4.5 + Math.random() * (100 - BAND * 9)) * 10) / 10;
+        // Keep the bullseye on the dial; the outer bands may run off the ends.
+        s.target = Math.round((BAND / 2 + Math.random() * (100 - BAND)) * 10) / 10;
         s.dial = 50;
         s.steal = null;
         s.peek = false;

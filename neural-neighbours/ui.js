@@ -118,7 +118,9 @@
       var b = v.band;
       [[-4.5, -2.5, 1], [-2.5, -0.5, 2], [-0.5, 0.5, 4], [0.5, 2.5, 2], [2.5, 4.5, 1]].forEach(function (w) {
         var from = Math.max(0, v.target + w[0] * b), to = Math.min(100, v.target + w[1] * b);
+        if (to <= from) return; // run off the end of the dial
         svg.appendChild(wedge(from, to, 'w' + w[2]));
+        if (to - from < b / 2) return; // too thin a sliver to label
         var xy = pt((from + to) / 2, RAD - 10).split(' ');
         svg.appendChild(el('text', { 'class': 'wnum', x: xy[0], y: xy[1] }, String(w[2])));
       });
