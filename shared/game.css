@@ -1,52 +1,30 @@
 /* Shared look for the games: colours, type, buttons, chips, screens, score boards.
    Each game loads this first, then its own style.css for the bits only it uses.
    Layout: one column, one job per screen. Changing this file changes every game. */
-:root { color-scheme: light; }
+:root { color-scheme: dark; }
 body { margin: 0; }
 [hidden] { display: none !important; }  /* screens use display:flex, so hidden needs this */
 body:not(.admin) .admin-only { display: none !important; }  /* host controls, behind the Admin toggle */
 
+/* The homepage's old-school palette (see ../style.css). Dark only, like the homepage. */
 :root {
-  --bg: #EDF0F5;
-  --surface: #FFFFFF;
-  --fg: #12151F;
-  --muted: #566074;
-  --line: #C6CEDB;
-  --btn: #12151F;     /* solid buttons stay dark in both themes */
-  --btn-text: #EDF0F5;
-  --focus: #2F5BEA;
-  --t0: #0A7F73;
-  --t1: #C81E64;
-  --t0-text: #0A7F73;
-  --t1-text: #C81E64;
-  --display: 'Bricolage Grotesque', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0E1118;
-    --surface: #171B26;
-    --fg: #EEF1F7;
-    --muted: #9AA4B8;
-    --line: #2C3445;
-    --btn: #2C3445;
-    --focus: #8FA8FF;
-    --t0-text: #3CC9B8;
-    --t1-text: #FF6B9F;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0E1118;
-  --surface: #171B26;
-  --fg: #EEF1F7;
-  --muted: #9AA4B8;
-  --line: #2C3445;
-  --btn: #2C3445;
-  --focus: #8FA8FF;
-  --t0-text: #3CC9B8;
-  --t1-text: #FF6B9F;
-  color-scheme: dark;
+  --bg: #000033;
+  --surface: #10104a;
+  --fg: #e0e0e0;
+  --muted: #aaaaff;
+  --line: #8888ff;
+  --hi: #ffff66;      /* headings and pressed things */
+  --pink: #ff00aa;    /* heading shadow */
+  --btn: #333399;
+  --btn-text: #ffff66;
+  --focus: #00ffff;
+  --t0: #008080;
+  --t1: #b3006b;
+  --t0-text: #00ffff;
+  --t1-text: #ff88ff;
+  --display: Verdana, Tahoma, Geneva, sans-serif;
+  --fun: "Comic Sans MS", "Comic Sans", "Comic Neue", cursive;  /* Comic Neue is loaded for phones without Comic Sans */
+  --mono: "Courier New", Courier, monospace;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -55,7 +33,7 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--display);
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.4;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
@@ -69,7 +47,7 @@ body { display: flex; flex-direction: column; }
   padding: max(4px, env(safe-area-inset-top, 0px)) 16px 4px;
 }
 .site a {
-  font-family: "Comic Sans MS", "Comic Sans", cursive; font-size: 15px; font-weight: 700;
+  font-family: var(--fun); font-size: 15px; font-weight: 700;
   color: #ffff66; text-shadow: 1px 1px 0 #ff00aa; text-decoration: none;
 }
 .site a:hover { text-decoration: underline; }
@@ -89,12 +67,14 @@ body { display: flex; flex-direction: column; }
   border-color: #ffff66; background: #ff00aa radial-gradient(circle at 17px 50%, #ffff66 3.5px, transparent 4px);
 }
 .admin-switch:focus-visible { outline: 2px solid #ffff66; outline-offset: 2px; }
-.screen { flex: 1; display: flex; flex-direction: column; }
+.screen { flex: 1; display: flex; flex-direction: column; padding: 10px 10px max(22px, env(safe-area-inset-bottom, 0px)); }  /* the bottom gap holds the version */
 .inner {
   width: 100%;
   max-width: 34rem;
   margin: 0 auto;
   flex: 1;
+  background: var(--surface);
+  border: 4px ridge var(--line);
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -106,10 +86,14 @@ body { display: flex; flex-direction: column; }
 .t0 { --team: var(--t0); }
 .t1 { --team: var(--t1); }
 .tint { background: var(--team); color: #fff; transition: background-color .2s ease; }
+.tint .inner { background: transparent; border-color: #fff; }
 
-h1, h2 { margin: 0; font-weight: 800; letter-spacing: -0.025em; text-wrap: balance; }
-h1 { font-size: clamp(2.8rem, 13vw, 4rem); line-height: .92; }
-h2 { font-size: clamp(2rem, 9vw, 2.8rem); line-height: 1; }
+h1, h2 { margin: 0; font-family: var(--fun); font-weight: 700; color: var(--hi); text-shadow: 2px 2px 0 var(--pink); text-wrap: balance; }
+h1 { font-size: clamp(2.6rem, 12vw, 3.6rem); line-height: 1; }
+h2 { font-size: clamp(1.9rem, 8.5vw, 2.6rem); line-height: 1.05; }
+.tint h1, .tint h2 { text-shadow: 2px 2px 0 var(--bg); }
+a { color: #00ffff; }
+a:visited { color: #ff88ff; }
 p { margin: 0; }
 .lede { font-size: 1.15rem; max-width: 30ch; }
 .mono, legend, .bar, .hint {
@@ -121,7 +105,7 @@ p { margin: 0; }
 .hint { color: var(--muted); text-transform: none; letter-spacing: .02em; font-size: .82rem; }
 
 /* Divider between the intro and the rules */
-.bar-rule { width: 100%; height: 4px; margin: 0; border: 0; border-radius: 2px; background: var(--fg); }
+.bar-rule { width: 100%; height: 0; margin: 0; border: 0; border-top: 2px dashed var(--line); }
 .tip { color: var(--muted); }
 .tip strong { color: var(--fg); }
 
@@ -136,12 +120,12 @@ legend { padding: 0; color: var(--muted); margin-bottom: 2px; }
 .chip { position: relative; display: block; min-width: 0; }
 .chip span {
   display: flex; align-items: center; justify-content: center; text-align: center;
-  min-height: 48px; padding: 6px 16px;
-  border: 2px solid var(--line); border-radius: 999px;
-  background: var(--surface); color: var(--fg);
-  font-weight: 600; cursor: pointer;
+  min-height: 48px; padding: 6px 8px;
+  border: 3px outset var(--line);
+  background: var(--btn); color: var(--fg);
+  font-weight: 700; cursor: pointer;
 }
-.chip input:checked + span { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.chip input:checked + span { background: var(--hi); color: var(--bg); border: 3px inset var(--hi); }
 .chip input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 3px; }
 .vh {
   position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
@@ -150,17 +134,17 @@ legend { padding: 0; color: var(--muted); margin-bottom: 2px; }
 
 .btn {
   display: block; width: 100%; min-height: 62px; padding: 12px 18px;
-  border: 2px solid transparent; border-radius: 12px;
-  font-family: var(--display); font-weight: 800; font-size: 1.2rem; line-height: 1.15;
+  border: 3px outset var(--line);
+  font-family: var(--display); font-weight: 700; font-size: 1.2rem; line-height: 1.15;
   cursor: pointer; text-align: center;
 }
-.btn:active { transform: scale(.985); }
+.btn:active { border-style: inset; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn.solid { background: var(--btn); color: var(--btn-text); }
-.btn.onteam { background: #fff; color: var(--team); }
-.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); min-height: 52px; font-size: 1rem; font-weight: 600; }
+.btn.onteam { background: var(--hi); color: var(--bg); border-color: var(--hi); }
+.btn.ghost { background: transparent; color: var(--fg); min-height: 52px; font-size: 1rem; font-weight: 600; }
 .btn.slim { min-height: 52px; font-size: 1rem; font-weight: 600; }  /* a ghost button's size */
-.tint .btn.ghost { color: #fff; border-color: rgba(255,255,255,.75); }
+.tint .btn.ghost { color: #fff; border-color: #fff; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 .tint :focus-visible { outline-color: #fff; }
 
@@ -171,9 +155,9 @@ legend { padding: 0; color: var(--muted); margin-bottom: 2px; }
 
 /* Score screens */
 .board { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.score { background: var(--team); color: #fff; border-radius: 16px; padding: 16px; display: grid; gap: 6px; min-width: 0; }
+.score { background: var(--team); color: #fff; border: 3px ridge var(--line); padding: 16px; display: grid; gap: 6px; min-width: 0; }
 .score .name { font-family: var(--mono); font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; }
-.score .num { font-size: 4rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.score .num { font-family: var(--fun); font-size: 4rem; font-weight: 700; line-height: 1; color: var(--hi); text-shadow: 2px 2px 0 var(--bg); font-variant-numeric: tabular-nums; }
 .spacer { flex: 1; }
 .final { font-family: var(--mono); font-size: 1rem; letter-spacing: .04em; }
 
@@ -182,23 +166,23 @@ legend { padding: 0; color: var(--muted); margin-bottom: 2px; }
 .field > span { color: var(--muted); }
 .input {
   width: 100%; min-height: 56px; padding: 10px 16px;
-  border: 2px solid var(--line); border-radius: 12px;
-  background: var(--surface); color: var(--fg);
-  font-family: var(--display); font-size: 1.2rem; font-weight: 600;
+  border: 3px inset var(--line);
+  background: var(--bg); color: var(--hi);
+  font-family: var(--display); font-size: 1.2rem; font-weight: 700;
 }
-.input.code { font-family: var(--mono); font-weight: 500; font-size: 1.6rem; letter-spacing: .3em; text-transform: uppercase; }
-.room-code { font-family: var(--mono); font-weight: 500; font-size: clamp(3rem, 18vw, 5rem); letter-spacing: .15em; line-height: 1; }
+.input.code { font-family: var(--mono); font-weight: 700; font-size: 1.6rem; letter-spacing: .3em; text-transform: uppercase; }
+.room-code { font-family: var(--mono); font-weight: 700; color: var(--hi); font-size: clamp(3rem, 18vw, 5rem); letter-spacing: .15em; line-height: 1; }
 .seg.two { grid-template-columns: 1fr 1fr; }
 .score ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; font-weight: 600; overflow-wrap: anywhere; }
 .score .you::after { content: ' (you)'; font-weight: 400; opacity: .8; }
-.tint .score { border: 2px solid rgba(255,255,255,.75); }
+.tint .score { border-color: #fff; }
 .score ol { margin: 0; padding: 0; list-style: none; counter-reset: turn; display: grid; align-content: start; gap: 4px; font-weight: 600; overflow-wrap: anywhere; }
 .score ol li { counter-increment: turn; display: flex; align-items: center; gap: 6px; min-height: 36px; }
 .score ol li::before { content: counter(turn) '.'; font-family: var(--mono); font-size: .85rem; opacity: .8; min-width: 1.4em; }
 .score ol li > span { flex: 1; min-width: 0; }
 .score .up {
   flex: none; width: 36px; height: 36px;
-  border: 2px solid rgba(255,255,255,.75); border-radius: 8px;
+  border: 2px outset #fff;
   background: transparent; color: #fff; font: 700 1rem var(--display); cursor: pointer;
 }
 .score li.empty { font-weight: 400; opacity: .8; }

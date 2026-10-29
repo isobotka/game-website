@@ -4,7 +4,7 @@
 
 /* Play screen: the category, the phrase, and the turn dot */
 .cat { font-family: var(--mono); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
-.phrase { margin: 0; font-weight: 800; line-height: 1.02; letter-spacing: -0.025em; text-wrap: balance; overflow-wrap: break-word; }
+.phrase { margin: 0; font-family: var(--fun); font-weight: 700; line-height: 1.05; text-wrap: balance; overflow-wrap: break-word; }
 .phrase[data-size="l"] { font-size: clamp(3rem, 16vw, 5.5rem); }
 .phrase[data-size="m"] { font-size: clamp(2.4rem, 12.5vw, 4.4rem); }
 .phrase[data-size="s"] { font-size: clamp(2rem, 10vw, 3.4rem); }
