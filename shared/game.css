@@ -47,7 +47,7 @@ body { display: flex; flex-direction: column; }
   background: #10104a; border-bottom: 2px solid #8888ff; text-align: center;
   padding: max(4px, env(safe-area-inset-top, 0px)) 16px 4px;
 }
-.site a {
+.site a, .site a:visited {
   font-family: var(--fun); font-size: 18px; font-weight: 400;
   color: #ffff66; text-shadow: 2px 2px 0 #ff00aa; text-decoration: none;
 }
