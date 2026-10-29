@@ -4,7 +4,7 @@
 /* Round screen: the two ends of the card, the dial, and what is going on */
 :root { --b1: #F6C453; --b2: #F08A3E; --b4: #D9452B; }
 #s-game .stage { justify-content: center; gap: 10px; }
-.ends { display: flex; justify-content: space-between; gap: 16px; font-family: var(--fun); font-weight: 400; color: var(--hi); font-size: clamp(1.2rem, 5.5vw, 1.7rem); line-height: 1.05; }
+.ends { display: flex; justify-content: space-between; gap: 16px; font-family: var(--fun); font-weight: 700; color: var(--hi); font-size: clamp(1.2rem, 5.5vw, 1.7rem); line-height: 1.05; }
 .end { max-width: 48%; overflow-wrap: break-word; }
 .end.left::before { content: '\2190\00a0\00a0'; font-family: var(--mono); font-weight: 400; color: var(--muted); }
 .end.right { text-align: right; }

@@ -23,9 +23,8 @@ body:not(.admin) .admin-only { display: none !important; }  /* host controls, be
   --t0-text: #00ffff;
   --t1-text: #ff88ff;
   --display: Verdana, Tahoma, Geneva, sans-serif;
-  --fun: "Black Ops One", Impact, sans-serif;  /* stencil display font, one weight only, so use it at 400 */
+  --fun: "Comic Sans MS", "Comic Sans", "Comic Neue", cursive;  /* Comic Neue is loaded for phones without Comic Sans */
   --mono: "Courier New", Courier, monospace;
-  --title: "Archivo Black", "Arial Black", Verdana, sans-serif;  /* headings: plain and heavy */
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -48,8 +47,8 @@ body { display: flex; flex-direction: column; }
   padding: max(4px, env(safe-area-inset-top, 0px)) 16px 4px;
 }
 .site a, .site a:visited {
-  font-family: var(--fun); font-size: 18px; font-weight: 400;
-  color: #ffff66; text-shadow: 2px 2px 0 #ff00aa; text-decoration: none;
+  font-family: var(--fun); font-size: 15px; font-weight: 700;
+  color: #ffff66; text-shadow: 1px 1px 0 #ff00aa; text-decoration: none;
 }
 .site a:hover { text-decoration: underline; }
 .site { position: relative; }
@@ -89,9 +88,9 @@ body { display: flex; flex-direction: column; }
 .tint { background: var(--team); color: #fff; transition: background-color .2s ease; }
 .tint .inner { background: transparent; border-color: #fff; }
 
-h1, h2 { margin: 0; font-family: var(--title); font-weight: 400; letter-spacing: -0.01em; color: var(--hi); text-shadow: 2px 2px 0 var(--pink); text-wrap: balance; }
-h1 { font-size: clamp(2.4rem, 11vw, 3.4rem); line-height: 1; }
-h2 { font-size: clamp(1.7rem, 7.5vw, 2.3rem); line-height: 1.05; }
+h1, h2 { margin: 0; font-family: var(--fun); font-weight: 700; color: var(--hi); text-shadow: 2px 2px 0 var(--pink); text-wrap: balance; }
+h1 { font-size: clamp(2.6rem, 12vw, 3.6rem); line-height: 1; }
+h2 { font-size: clamp(1.9rem, 8.5vw, 2.6rem); line-height: 1.05; }
 .tint h1, .tint h2 { text-shadow: 2px 2px 0 var(--bg); }
 a { color: #00ffff; }
 a:visited { color: #ff88ff; }
@@ -158,7 +157,7 @@ legend { padding: 0; color: var(--muted); margin-bottom: 2px; }
 .board { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .score { background: var(--team); color: #fff; border: 3px ridge var(--line); padding: 16px; display: grid; gap: 6px; min-width: 0; }
 .score .name { font-family: var(--mono); font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; }
-.score .num { font-family: var(--fun); font-size: 4rem; font-weight: 400; line-height: 1; color: var(--hi); text-shadow: 2px 2px 0 var(--bg); font-variant-numeric: tabular-nums; }
+.score .num { font-family: var(--fun); font-size: 4rem; font-weight: 700; line-height: 1; color: var(--hi); text-shadow: 2px 2px 0 var(--bg); font-variant-numeric: tabular-nums; }
 .spacer { flex: 1; }
 .final { font-family: var(--mono); font-size: 1rem; letter-spacing: .04em; }
 
