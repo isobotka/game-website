@@ -19,7 +19,7 @@ const CLOSE = {
   FULL: 4029
 };
 
-const CODE = /^[A-HJKMNP-Z]{4}$/; // matches CODE_CHARS in net.js
+const CODE = /^[A-HJKMNP-Z]{4}$/; // matches CODE_CHARS in shared/net.js
 const MAX_GUESTS = 15;            // rules.js allows 16 players, host included
 const MAX_MESSAGE = 16 * 1024;
 // Messages a connection may send at once, refilled per second. The host sends
