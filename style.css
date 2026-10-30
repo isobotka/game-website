@@ -4,9 +4,9 @@ body {
   margin: 0;
   padding: 20px 10px;
   background-color: #000033;
-  /* Tiled Halloween pumpkins + cats; the tile holds 2 columns, so /3.5 gives 7 across */
+  /* Tiled Halloween decorations; the tile holds 6 columns, so 60% gives 10 across */
   background-image: url("img/spooky.svg");
-  background-size: calc(100vw / 3.5) auto;
+  background-size: 60vw auto;
   color: #e0e0e0;
   font-family: Verdana, Tahoma, Geneva, sans-serif;
   font-size: 14px;
