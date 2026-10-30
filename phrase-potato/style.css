@@ -1,6 +1,6 @@
 /* Phrase Potato styles. The shared look is in ../shared/game.css; this is what only
-   Phrase Potato uses. Pick a mode, set up (or join a room), then a full-colour play
-   screen tinted by whichever team holds the potato, then a score screen, then a winner. */
+   Phrase Potato uses. Pick a mode, set up (or join a room), then a play screen
+   whose card is tinted by whichever team holds the potato, then a score screen, then a winner. */
 
 /* Play screen: the category, the phrase, and the turn dot */
 .cat { font-family: var(--mono); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }

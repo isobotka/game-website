@@ -89,8 +89,9 @@ html:not(.no-spooky) body { background-image: url("../img/spooky.svg"); backgrou
 
 .t0 { --team: var(--t0); }
 .t1 { --team: var(--t1); }
-.tint { background: var(--team); color: #fff; transition: background-color .2s ease; }
-.tint .inner { background: transparent; border-color: #fff; }
+/* Team colour fills the game card only; the page background around it stays put */
+.tint { color: #fff; }
+.tint .inner { background: var(--team); border-color: #fff; transition: background-color .2s ease; }
 
 h1, h2 { margin: 0; font-family: var(--fun); font-weight: 700; color: var(--hi); text-shadow: 2px 2px 0 var(--pink); text-wrap: balance; }
 h1 { font-size: clamp(2.6rem, 12vw, 3.6rem); line-height: 1; }
@@ -199,4 +200,3 @@ legend { padding: 0; color: var(--muted); margin-bottom: 2px; }
   font-family: var(--mono); font-size: .7rem; letter-spacing: .04em;
   color: var(--muted); pointer-events: none;
 }
-body:has(.tint:not([hidden])) .version { color: rgba(255,255,255,.8); }
