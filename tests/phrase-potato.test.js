@@ -72,6 +72,20 @@ function teamsGame() {
 }
 
 test.describe('Phrase Potato', function () {
+  test.it('every deck is big, and no phrase appears twice', function () {
+    var seen = {};
+    PP.DECK_KEYS.forEach(function (k) {
+      var items = PP.DECKS[k].items;
+      assert.ok(items.length >= 80, k + ' has only ' + items.length + ' phrases');
+      items.forEach(function (text) {
+        assert.ok(typeof text === 'string' && text && text === text.trim(), 'bad phrase in ' + k + ': ' + JSON.stringify(text));
+        var key = text.toLowerCase();
+        assert.ok(!seen[key], '"' + text + '" is in both ' + seen[key] + ' and ' + k);
+        seen[key] = k;
+      });
+    });
+  });
+
   test.it('cleanSettings falls back to the defaults for anything odd', function () {
     var defaults = load.plain(R.cleanSettings(null));
     assert.deepEqual(load.plain(R.cleanSettings({ cats: ['nope'], target: 3, length: 'huge', mode: 'x', sound: 1 })), defaults);
