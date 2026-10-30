@@ -39,8 +39,12 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 body { display: flex; flex-direction: column; }
-/* Halloween tiles like the homepage's (6 columns per tile, so 60vw gives 10 across). The Spooky switch turns them off. */
-html:not(.no-spooky) body { background-image: url("../img/spooky.svg"); background-size: 60vw auto; }
+/* Halloween tiles like the homepage's (6 columns per tile, so 60vw gives 10 across), with the threads over the first tile only.
+   The Spooky switch turns them off. */
+html:not(.no-spooky) body {
+  background-image: url("../img/spooky-threads.svg"), url("../img/spooky.svg");
+  background-size: 60vw auto; background-repeat: no-repeat, repeat;
+}
 #app { flex: 1 0 auto; display: flex; flex-direction: column; }
 
 /* Banner back to the games list, in the homepage's old-school look. */

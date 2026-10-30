@@ -4,9 +4,11 @@ body {
   margin: 0;
   padding: 20px 10px;
   background-color: #000033;
-  /* Tiled Halloween decorations; the tile holds 6 columns, so 60% gives 10 across */
-  background-image: url("img/spooky.svg");
+  /* Tiled Halloween decorations; the tile holds 6 columns, so 60% gives 10 across.
+     The threads go over the first tile only, so just those two spiders hang. */
+  background-image: url("img/spooky-threads.svg"), url("img/spooky.svg");
   background-size: 60vw auto;
+  background-repeat: no-repeat, repeat;
   color: #e0e0e0;
   font-family: Verdana, Tahoma, Geneva, sans-serif;
   font-size: 14px;

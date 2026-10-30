@@ -14,6 +14,7 @@
     'Bats are the only mammals that can truly fly.',
     'Vampire bats can run along the ground.',
     'Some bats live for over 40 years.',
+    'My name is Miso!',
     'A group of bats is called a colony.',
     'Your skull is made of 22 bones.',
     'Babies have around 300 bones. Adults have 206.',

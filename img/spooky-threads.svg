@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 400">
+  <!-- Threads for two of the spiders in spooky.svg, so they hang (one behind the fun-fact bubble, one behind the page).
+       Drawn over the first tile only (no-repeat), so the spiders in the other tiles don't get threads.
+       Same size and units as spooky.svg; each thread runs from above down to its spider's head. -->
+  <path d="M98 76 V114.5 M253 171.5 V208" stroke="#ccccff" stroke-width="0.55" opacity="0.7"/>
+</svg>
