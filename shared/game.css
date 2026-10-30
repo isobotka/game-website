@@ -39,6 +39,8 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 body { display: flex; flex-direction: column; }
+/* Halloween tiles like the homepage's (6 columns per tile, so 60vw gives 10 across). The Spooky switch turns them off. */
+html:not(.no-spooky) body { background-image: url("../img/spooky.svg"); background-size: 60vw auto; }
 #app { flex: 1 0 auto; display: flex; flex-direction: column; }
 
 /* Banner back to the games list, in the homepage's old-school look. */
@@ -52,21 +54,23 @@ body { display: flex; flex-direction: column; }
 }
 .site a:hover { text-decoration: underline; }
 .site { position: relative; }
-/* The host's admin toggle: a little switch at the right of the banner */
-.admin-switch {
-  position: absolute; right: max(10px, env(safe-area-inset-right, 0px)); top: 50%; transform: translateY(-50%);
+/* Little switches in the banner: Spooky (background) on the left, the host's Admin on the right */
+.admin-switch, .spooky-switch {
+  position: absolute; top: 50%; transform: translateY(-50%);
   display: flex; align-items: center; gap: 6px; padding: 4px 0; background: none; border: 0; cursor: pointer;
   font-family: var(--mono); font-size: .7rem; letter-spacing: .04em; color: #c8c8ff;
 }
-.admin-switch::after {
+.admin-switch { right: max(10px, env(safe-area-inset-right, 0px)); }
+.spooky-switch { left: max(10px, env(safe-area-inset-left, 0px)); }
+.admin-switch::after, .spooky-switch::after {
   content: ''; width: 26px; height: 14px; border-radius: 7px; border: 1.5px solid #8888ff; box-sizing: border-box;
   background: radial-gradient(circle at 6px 50%, #8888ff 3.5px, transparent 4px);
 }
-.admin-switch[aria-checked="true"] { color: #ffff66; }
-.admin-switch[aria-checked="true"]::after {
+.admin-switch[aria-checked="true"], .spooky-switch[aria-checked="true"] { color: #ffff66; }
+.admin-switch[aria-checked="true"]::after, .spooky-switch[aria-checked="true"]::after {
   border-color: #ffff66; background: #ff00aa radial-gradient(circle at 17px 50%, #ffff66 3.5px, transparent 4px);
 }
-.admin-switch:focus-visible { outline: 2px solid #ffff66; outline-offset: 2px; }
+.admin-switch:focus-visible, .spooky-switch:focus-visible { outline: 2px solid #ffff66; outline-offset: 2px; }
 .screen { flex: 1; display: flex; flex-direction: column; padding: 10px 10px max(22px, env(safe-area-inset-bottom, 0px)); }  /* the bottom gap holds the version */
 .inner {
   width: 100%;

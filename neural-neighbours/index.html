@@ -9,11 +9,12 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap">
 <link rel="stylesheet" href="../shared/game.css">
 <link rel="stylesheet" href="style.css">
+<script src="../shared/spooky.js"></script>
 <!-- Screens are below; ../shared/game.css and style.css have the look. Code: decks.js (spectrum cards), rules.js (game rules),
      net.js (online, most of it in ../shared/net.js), ui.js (drawing screens and the dial), main.js (buttons and dragging). -->
 </head>
 <body>
-<nav class="site"><a href="../">~ ian's games ~</a><button class="admin-switch" id="btnAdmin" type="button" role="switch" aria-checked="false" hidden>Admin</button></nav>
+<nav class="site"><button class="spooky-switch" id="btnSpooky" type="button" role="switch" aria-checked="true">Spooky</button><a href="../">~ ian's games ~</a><button class="admin-switch" id="btnAdmin" type="button" role="switch" aria-checked="false" hidden>Admin</button></nav>
 <main id="app">
 
   <section class="screen" id="s-mode">
@@ -182,7 +183,7 @@
 </main>
 
 <!-- Bump this when you publish a change. -->
-<p class="version" aria-label="Version 0.5">v0.5</p>
+<p class="version" aria-label="Version 0.6">v0.6</p>
 
 <script src="decks.js"></script>
 <script src="rules.js"></script>
