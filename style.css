@@ -4,8 +4,9 @@ body {
   margin: 0;
   padding: 20px 10px;
   background-color: #000033;
-  /* Tiled background: put any small image in img/ and uncomment this line */
-  /* background-image: url("img/stars.gif"); */
+  /* Tiled Halloween pumpkins + cats; the tile holds 2 columns, so /3.5 gives 7 across */
+  background-image: url("img/spooky.svg");
+  background-size: calc(100vw / 3.5) auto;
   color: #e0e0e0;
   font-family: Verdana, Tahoma, Geneva, sans-serif;
   font-size: 14px;
