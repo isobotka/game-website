@@ -1,0 +1,35 @@
+/* Speech bubble for the top-left cat of the Halloween background (fun-facts.js fills it).
+   It is placed in the background tile's own units (the tile is 420 wide and drawn 60vw wide),
+   so it stays in the gap between the first cat, pumpkin, skull and second cat at any width. */
+.fun-fact {
+  --u: calc(60vw / 420);
+  position: absolute;
+  left: calc(var(--u) * 52);
+  top: calc(var(--u) * 58);
+  width: calc(var(--u) * 66);
+  min-height: calc(var(--u) * 34);
+  margin: 0;
+  padding: .45em .6em;
+  display: flex; align-items: center; justify-content: center;
+  background: #10104a;
+  border: 2px solid #ff00aa;
+  border-radius: 10px;
+  box-shadow: 0 0 6px #ff00aa;
+  color: #ffff66;
+  font-family: "Comic Sans MS", "Comic Sans", "Comic Neue", cursive;
+  font-size: clamp(9px, .78vw, 13px);
+  line-height: 1.25;
+  text-align: center;
+  z-index: 0;
+}
+/* The tail, pointing up-left at the cat's face: a pink triangle with a smaller fill-coloured one on top */
+.fun-fact::before, .fun-fact::after {
+  content: ''; position: absolute;
+  clip-path: polygon(0 0, 100% 100%, 30% 100%);
+}
+.fun-fact::before { left: 0;   top: -16px; width: 22px; height: 18px; background: #ff00aa; }
+.fun-fact::after  { left: 4px; top: -11px; width: 16px; height: 13px; background: #10104a; }
+
+/* Only beside the page on wide screens (elsewhere the page covers this corner), and only while spooky */
+@media (max-width: 1099px) { .fun-fact { display: none; } }
+.no-spooky .fun-fact { display: none; }
