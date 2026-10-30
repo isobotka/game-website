@@ -207,12 +207,17 @@ test.describe('Spy Spaghetti', function () {
   });
 
   test.it('an operative taking the open seat loses their mark', function () {
-    var s = load.play(R, game(), [[HOST, 'LEAVE']]);
-    s = load.play(R, s, [['p1', 'MARK', { card: 0 }]]);
-    if (s.active !== 0) s = load.play(R, s, [['p2', 'CLUE', { count: 1 }], ['p3', 'MARK', { card: 0 }], ['p3', 'LOCK']]);
-    // Teal has no spymaster, so give p1 the seat whether or not Teal is guessing.
+    var s = game();
+    // Get to Teal's turn: if Magenta starts, they pick a bystander.
+    if (s.active === 1) {
+      s = R.reduce(s, { type: 'CLUE', from: 'p2', count: 1 });
+      s = pickCard(s, cardWith(s, 'n'));
+    }
+    s = load.play(R, s, [[HOST, 'CLUE', { count: 2 }]]);
+    s = load.play(R, s, [['p1', 'MARK', { card: cardWith(s, 0) }], [HOST, 'LEAVE']]);
+    assert.ok('p1' in s.marks, 'p1 has a mark down');
     s = R.reduce(s, { type: 'SET_SPY', from: 'p1', on: true });
     assert.equal(spyOf(s, 0).id, 'p1');
-    assert.ok(!('p1' in s.marks));
+    assert.ok(!('p1' in s.marks), 'their mark is gone');
   });
 });
