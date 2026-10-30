@@ -2,3 +2,4 @@
 - bonk feature
 - multiple words for points
 - joining active game didnt leave watching
+- if a whole team drops mid-game, rounds get stuck with no describer (and newcomers cannot pick a team until the game ends)

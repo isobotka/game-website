@@ -19,6 +19,7 @@ c.contract('Neural Neighbours', NN, {
   },
   hostOnly: ['SETTINGS', 'START_GAME', 'SET_ORDER', 'SHUFFLE_ORDER', 'START_ROUND', 'REVEAL', 'NEXT_ROUND', 'END'],
   hiddenKeys: ['deck', 'guesses'],
+  mayRemember: ['psychic', 'result'],  // what the reveal screen shows; the round is over by then
   action: function (rand, s) {
     var pick = function (list) { return c.pick(rand, list); };
     // Sometimes aim near the target, so games get to the end.
@@ -172,5 +173,38 @@ test.describe('Neural Neighbours', function () {
     assert.equal(s.phase, 'reveal');
     assert.deepEqual(load.plain(s.result), { guesses: { p1: 4, p2: 2 }, psychic: 3 });
     assert.deepEqual(load.plain(s.points), { host: 3, p1: 4, p2: 2 });
+  });
+
+  // Online, a dropped phone comes back through the relay with a new id: a LEAVE, then a new player's JOIN.
+  test.it('someone who drops mid-round comes back as a new player, watching until the next game', function () {
+    var s = load.play(R, teamsRound(), [[HOST, 'CLUE_GIVEN'], ['p3', 'LEAVE'], ['g1', 'JOIN', { name: 'P3' }]]);
+    var v = R.viewFor(s, 'g1');
+    assert.equal(v.myTeam, null);
+    assert.equal(v.target, null);
+    assert.ok(!v.canTurn);
+    assert.equal(R.reduce(s, { type: 'SET_TEAM', from: 'g1', team: 1 }), s, 'teams are fixed until the game ends');
+
+    s = load.play(R, s, [['p1', 'LOCK', { value: 50 }]]);
+    assert.ok(!R.viewFor(s, 'g1').canSteal);
+    s = load.play(R, s, [['p2', 'STEAL', { side: 'left' }], [HOST, 'NEXT_ROUND']]);
+    assert.deepEqual(load.plain(s.queue), [['p1'], ['p2']], 'they are not in the psychic order');
+
+    s = load.play(R, s, [[HOST, 'END'], ['g1', 'SET_TEAM', { team: 1 }], [HOST, 'START_GAME']]);
+    assert.deepEqual(load.plain(s.queue[1]), ['p2', 'g1'], 'they are in the next game');
+  });
+
+  test.it('solo: when a guesser drops and everyone left has locked in, the round reveals', function () {
+    var s = load.play(R, R.newState(true), [
+      [HOST, 'JOIN'], ['p1', 'JOIN'], ['p2', 'JOIN'], [HOST, 'SETTINGS', { settings: { mode: 'solo' } }],
+      [HOST, 'START_GAME'], [HOST, 'START_ROUND'], [HOST, 'CLUE_GIVEN'],
+      ['p1', 'LOCK', { value: 50 }], ['p2', 'LEAVE']
+    ]);
+    assert.equal(s.phase, 'reveal');
+    assert.deepEqual(Object.keys(s.result.guesses), ['p1']);
+
+    s = load.play(R, s, [['g1', 'JOIN'], [HOST, 'NEXT_ROUND'], [HOST, 'START_ROUND']]);
+    assert.equal(s.psychic, 'p1');
+    assert.deepEqual(Object.keys(s.guesses), [HOST], 'a newcomer does not guess until the next game');
+    assert.ok(!R.viewFor(s, 'g1').canTurn);
   });
 });

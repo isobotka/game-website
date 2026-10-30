@@ -164,4 +164,31 @@ test.describe('Spy Spaghetti', function () {
     s = R.reduce(s, { type: 'SET_SPY', from: operativeId(s), on: true });
     assert.equal(spyOf(s, team).id, operativeId(s));
   });
+
+  // Online, a dropped phone comes back through the relay with a new id: a LEAVE, then a new player's JOIN.
+  test.it('an operative who drops can come back as a new player and pick a team mid-game', function () {
+    var s = game();
+    var team = s.active;
+    s = R.reduce(s, { type: 'CLUE', from: spyId(s), count: 2 });
+    s = load.play(R, s, [[operativeId(s), 'MARK', { card: 0 }], [operativeId(s), 'LEAVE']]);
+    assert.deepEqual(load.plain(s.marks), {}, 'their mark goes with them');
+    assert.ok(R.viewFor(s, spyId(s)).canMark, 'with no operatives left, the spymaster picks');
+
+    s = load.play(R, s, [['g1', 'JOIN'], ['g1', 'SET_TEAM', { team: team }]]);
+    var v = R.viewFor(s, 'g1');
+    assert.ok(v.canMark);
+    assert.ok(v.cards.every(function (card) { return card.shown || card.key === null; }), 'a new operative sees no key');
+    assert.ok(!R.viewFor(s, spyId(s)).canMark, 'the spymaster hands picking back');
+    assert.equal(R.reduce(s, { type: 'SET_TEAM', from: 'g1', team: 1 - team }), s, 'and then they cannot switch');
+  });
+
+  test.it('a spymaster who drops can come back and take their seat again', function () {
+    var s = game();
+    var team = s.active;
+    s = load.play(R, s, [[spyId(s), 'LEAVE'], ['g1', 'JOIN'], ['g1', 'SET_TEAM', { team: team }], ['g1', 'SET_SPY', { on: true }]]);
+    assert.equal(spyOf(s, team).id, 'g1');
+    assert.ok(R.viewFor(s, 'g1').cards.every(function (card) { return card.key !== null; }));
+    s = R.reduce(s, { type: 'CLUE', from: 'g1', count: 1 });
+    assert.equal(s.phase, 'guess');
+  });
 });

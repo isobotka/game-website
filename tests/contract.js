@@ -107,6 +107,29 @@ function contract(name, game, opts) {
     }
   }
 
+  // Every path in the state that still mentions id, as a value or a key.
+  function refsTo(x, id, where, out) {
+    if (x === id) out.push(where);
+    else if (x && typeof x === 'object') {
+      Object.keys(x).forEach(function (k) {
+        if (k === id) out.push(where + '.' + k);
+        refsTo(x[k], id, where + '.' + k, out);
+      });
+    }
+    return out;
+  }
+
+  // Someone who left is gone: nothing may still wait on them or count them.
+  // opts.mayRemember lists top-level fields allowed to keep the id for display
+  // (who lost the last round, say).
+  function checkGone(s, id) {
+    var allowed = opts.mayRemember || [];
+    var refs = refsTo(s, id, 'state', []).filter(function (path) {
+      return allowed.indexOf(path.split(/[.[]/)[1]) < 0;
+    });
+    assert.deepEqual(refs, [], id + ' left but is still in the state');
+  }
+
   function fuzz(online, seed, seen) {
     var rand = seeded(seed * 7919);
     game.seed(seed);
@@ -115,11 +138,13 @@ function contract(name, game, opts) {
       : privileged;  // one phone: the device is the host, plus any timer
     var s = deepFreeze(rules.newState(online));
     var now = 1000;
+    var fresh = 0;
     seen.add(s.phase);
     for (var step = 0; step < STEPS; step++) {
       for (var t = 0; t < TRIES; t++) {
         var a = opts.action(rand, s);
         if (a.from === undefined) a.from = pick(rand, senders);
+        if (a.type === 'LEAVE' && a.from === HOST) continue; // the host leaving closes the room instead
         now += Math.floor(rand() * 5000);
         a.now = now;
         var next;
@@ -129,6 +154,7 @@ function contract(name, game, opts) {
           if (next === s) continue;
           deepFreeze(next);
           checkState(next);
+          if (a.type === 'LEAVE') checkGone(next, a.from);
           checkViews(next, senders.concat(next.players.map(function (p) { return p.id; })), now + 500);
         } catch (e) {
           e.message = 'seed ' + seed + ', step ' + step + ', phase ' + s.phase + ', action ' +
@@ -137,6 +163,8 @@ function contract(name, game, opts) {
         }
         s = next;
         seen.add(s.phase);
+        // Coming back after a drop is a new connection, so the relay gives a new id.
+        if (a.type === 'LEAVE') senders[senders.indexOf(a.from)] = 'g' + (++fresh);
         break;
       }
     }

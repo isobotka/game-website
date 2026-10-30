@@ -18,6 +18,7 @@ c.contract('Phrase Potato', PP, {
   hostOnly: ['SETTINGS', 'START_GAME', 'SET_ORDER', 'SHUFFLE_ORDER', 'START_ROUND', 'NEXT_ROUND', 'END'],
   privileged: [HOST, TIMER],
   hiddenKeys: ['deck', 'idx'],
+  mayRemember: ['loser'],  // shown on the result screen; their name just goes blank
   action: function (rand, s) {
     var pick = function (list) { return c.pick(rand, list); };
     return c.weighted(rand, [
@@ -137,5 +138,34 @@ test.describe('Phrase Potato', function () {
     assert.equal(s.loser, 'p1');
     assert.deepEqual(load.plain(s.strikes), { host: 0, p1: 1 });
     assert.deepEqual(load.plain(R.viewFor(s, HOST, 0).standings).map(function (p) { return p.id; }), [HOST, 'p1']);
+  });
+
+  // Online, a dropped phone comes back through the relay with a new id: a LEAVE, then a new player's JOIN.
+  test.it('someone who drops mid-round comes back as a new player, watching until the next game', function () {
+    var s = load.play(R, teamsGame(), [[HOST, 'START_ROUND'], ['p1', 'LEAVE'], ['g1', 'JOIN', { name: 'P1' }]]);
+    assert.deepEqual(load.plain(s.order), [[HOST], ['p2', 'p3']]);
+    var v = R.viewFor(s, 'g1', 0);
+    assert.equal(v.myTeam, null);
+    assert.equal(v.phrase, null);
+    assert.equal(R.reduce(s, { type: 'SET_TEAM', from: 'g1', team: 0 }), s, 'teams are fixed until the game ends');
+
+    s = load.play(R, s, [[HOST, 'PASS'], [TIMER, 'BUZZ'], [HOST, 'NEXT_ROUND'], [HOST, 'START_ROUND']]);
+    assert.equal(s.phase, 'playing', 'the game goes on without them');
+    assert.notEqual(s.describer, 'g1');
+
+    s = load.play(R, s, [[HOST, 'END'], ['g1', 'SET_TEAM', { team: 0 }], [HOST, 'START_GAME']]);
+    assert.deepEqual(load.plain(s.order[0]), [HOST, 'g1'], 'they are in the next game');
+  });
+
+  test.it('solo: someone who drops loses their strikes, and comes back with none', function () {
+    var s = load.play(R, R.newState(true), [
+      [HOST, 'JOIN'], ['p1', 'JOIN'], ['p2', 'JOIN'], [HOST, 'SETTINGS', { settings: { mode: 'solo' } }],
+      [HOST, 'START_GAME'], [HOST, 'START_ROUND'], [HOST, 'PASS'], [TIMER, 'BUZZ'],
+      ['p1', 'LEAVE'], ['g1', 'JOIN']
+    ]);
+    assert.deepEqual(load.plain(s.strikes), { host: 0, p2: 0 });
+    assert.deepEqual(load.plain(R.viewFor(s, 'g1', 0).standings).map(function (p) { return p.id; }), [HOST, 'p2']);
+    s = load.play(R, s, [[HOST, 'NEXT_ROUND'], [HOST, 'START_ROUND']]);
+    assert.deepEqual(load.plain(s.order[0]), ['p2', HOST], 'whoever was up next still goes next');
   });
 });
