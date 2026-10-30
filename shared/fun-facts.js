@@ -4,7 +4,7 @@
   var FACTS = [
     'Black cats are good luck in Britain and Japan!',
     'A group of cats is called a clowder.',
-    'Cats sleep 12 to 16 hours a day. Goals.',
+    'Cats sleep 12 to 16 hours a day.',
     'Cats can\'t taste sweet things.',
     'Cats have whiskers on the backs of their front legs.',
     'A black cat\'s fur can turn rusty brown in the sun.',
@@ -17,11 +17,9 @@
     'A group of bats is called a colony.',
     'Your skull is made of 22 bones.',
     'Babies have around 300 bones. Adults have 206.',
-    'Halloween is short for All Hallows\' Eve.',
     'Halloween grew out of Samhain, an old Gaelic festival.',
     'Fear of Halloween is called samhainophobia.',
     'Candy corn has been around since the 1880s.',
-    'Spiders aren\'t insects. They\'re arachnids!',
     'Owls can\'t move their eyes, so they turn their heads.'
   ];
 

@@ -22,13 +22,13 @@
   text-align: center;
   z-index: 0;
 }
-/* The tail, pointing up-left at the cat's face: a pink triangle with a smaller fill-coloured one on top */
+/* The tail, pointing up-left at the cat's face: a pink triangle with a fill-coloured one 2px inside it,
+   which also covers the border under the tail. It starts past the rounded corner so they don't overlap. */
 .fun-fact::before, .fun-fact::after {
-  content: ''; position: absolute;
-  clip-path: polygon(0 0, 100% 100%, 30% 100%);
+  content: ''; position: absolute; left: 0; top: -17px; width: 40px; height: 18px;
 }
-.fun-fact::before { left: 0;   top: -16px; width: 22px; height: 18px; background: #ff00aa; }
-.fun-fact::after  { left: 4px; top: -11px; width: 16px; height: 13px; background: #10104a; }
+.fun-fact::before { background: #ff00aa; clip-path: polygon(12px 0, 36px 18px, 22px 18px); }
+.fun-fact::after  { background: #10104a; clip-path: polygon(18.4px 7px, 34px 18px, 24.9px 18px); }
 
 /* Only beside the page on wide screens (elsewhere the page covers this corner), and only while spooky */
 @media (max-width: 1099px) { .fun-fact { display: none; } }
