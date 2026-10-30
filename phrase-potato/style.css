@@ -8,6 +8,9 @@
 .phrase[data-size="l"] { font-size: clamp(3rem, 16vw, 5.5rem); }
 .phrase[data-size="m"] { font-size: clamp(2.4rem, 12.5vw, 4.4rem); }
 .phrase[data-size="s"] { font-size: clamp(2rem, 10vw, 3.4rem); }
+/* Skip and (one phone only) Hide side by side; a lone button takes the full width */
+.top-btns { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 12px; }
+.top-btns:not(:has(.btn:not([hidden]))) { display: none; }
 .dot { width: 18px; height: 18px; border-radius: 50%; background: #fff; opacity: .55; }
 
 /* Score screens */

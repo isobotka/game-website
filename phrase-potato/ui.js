@@ -186,6 +186,7 @@
   // someone else's tap, so wake the audio on any tap on this device.
   document.addEventListener('pointerdown', function () { audio(); });
 
+
   /* ---------- beeps ---------- */
   // Each device runs its own beeps from the time left in the latest view.
   // They are only for feel: the host's timer decides when the buzzer goes.
@@ -220,6 +221,9 @@
   /* ---------- drawing ---------- */
   var prev = null;
   var roomCode = '';
+  // One phone: the describer can hide the phrase while the phone changes hands.
+  // Every new phrase starts out showing.
+  var hidden = { on: false, text: null };
   function setRoom(code) { roomCode = code; }
 
   function teamName(t) { return TEAMS[t].name; }
@@ -289,6 +293,7 @@
     renderOrder(v);
     $('btnPass').hidden = true;
     $('btnSkip').hidden = true;
+    $('btnHide').hidden = true;
     hint('playHint', v.isHost ? (v.online && admin ? 'Set who describes in what order, then start.' : '') : 'Waiting for the host to start the round.');
   }
 
@@ -339,12 +344,16 @@
     $('turnOrder').hidden = true;
     $('btnPass').hidden = !v.canDescribe;
     $('btnSkip').hidden = !v.canDescribe;
+    $('btnHide').hidden = v.online;
     hint('playHint', '');
     if (!v.online) {
+      if (hidden.text !== v.phrase.text) hidden = { on: false, text: v.phrase.text };
+      $('btnHide').textContent = hidden.on ? 'Show phrase' : 'Hide phrase';
+      $('btnHide').setAttribute('aria-pressed', String(hidden.on));
       $('btnPass').textContent = 'Guessed it. Pass the phone';
       $('who').textContent = teamName(v.holding) + ' team has the phone';
-      $('cat').textContent = v.phrase.cat;
-      setPhrase(v.phrase.text);
+      $('cat').textContent = hidden.on ? '' : v.phrase.cat;
+      setPhrase(hidden.on ? 'Hidden' : v.phrase.text, hidden.on ? 'l' : null);
       return;
     }
     $('who').textContent = v.solo ? (v.describerName || 'Nobody') + ' has the potato' : teamName(v.holding) + ' has the potato';
@@ -358,6 +367,12 @@
       else setPhrase(v.myTeam === v.holding ? 'Guess!' : v.myTeam === null ? 'Watching' : 'Get ready', 'l');
     }
   }
+
+  $('btnHide').addEventListener('click', function () {
+    if (!prev || prev.phase !== 'playing') return;
+    hidden.on = !hidden.on;
+    renderPlaying(prev);
+  });
 
   function renderBoard(el, v) {
     el.textContent = '';
