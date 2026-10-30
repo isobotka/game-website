@@ -1,6 +1,7 @@
 import { DurableObject } from 'cloudflare:workers';
 
-/* Phrase Potato relay: passes messages between a host and its guests.
+/* Game relay (Phrase Potato, Neural Neighbours, Spy Spaghetti): passes
+   messages between a host and its guests.
 
    One Durable Object per room code. The host's browser still runs the rules;
    this only forwards:

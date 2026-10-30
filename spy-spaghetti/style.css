@@ -1,0 +1,57 @@
+/* Spy Spaghetti styles. The shared look is in ../shared/game.css; this is what
+   only Spy Spaghetti uses: the board of words and the clue controls. */
+
+:root { --neutral: #c8b07a; --assassin: #111111; }
+#s-game .inner, #s-win .inner { max-width: 40rem; padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); }
+/* Round screen: keep the score, board and buttons close together; spare height goes below them */
+#s-game .inner { gap: 8px; padding-block: 12px; }
+#s-game .stage { flex: none; justify-content: flex-start; gap: 8px; }
+#s-game .actions { gap: 8px; }
+.team-0 { color: var(--t0-text); } .team-1 { color: var(--t1-text); }
+.board .wide { grid-column: 1 / -1; }
+.chip input:disabled + span { opacity: .45; cursor: not-allowed; }
+.score .tag { font-family: var(--mono); font-size: .75rem; font-weight: 400; opacity: .85; }
+
+/* The board: 5 by 5. k0 / k1 / kn / kx say what a card is, once this device may know. */
+.grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.card {
+  --k: var(--btn);
+  position: relative; min-width: 0; min-height: 56px; padding: 14px 2px;
+  border: 3px outset var(--line); background: var(--btn); color: var(--fg);
+  font-family: var(--display); font-weight: 700; font-size: clamp(.6rem, 2.7vw, .95rem); line-height: 1.1;
+  overflow-wrap: anywhere; hyphens: auto; text-align: center; cursor: default;
+}
+.card.k0 { --k: var(--t0); } .card.k1 { --k: var(--t1); } .card.kn { --k: var(--neutral); } .card.kx { --k: var(--assassin); }
+.card.live { cursor: pointer; color: var(--btn-text); }
+.card.live:active { border-style: inset; }
+/* The spymaster's key on cards nobody has picked yet */
+.card.key:not(.shown) { background: color-mix(in srgb, var(--k) 55%, var(--btn)); border-color: var(--k); border-style: solid; }
+.card.key.kn:not(.shown) { color: var(--bg); }
+.card.key.kx:not(.shown) { border-color: #ff4444; }
+/* Picked: the card shows what it was */
+.card.shown { background: var(--k); border: 3px solid var(--k); color: #fff; }
+.card.shown.kn { color: var(--bg); }
+.card.shown .word { opacity: .6; text-decoration: line-through; }
+.card.shown.kx { outline: 2px solid #ff4444; outline-offset: -5px; }
+.card.mine { outline: 3px solid var(--focus); outline-offset: 1px; }
+/* Who wants to pick this one */
+.card .marks {
+  position: absolute; left: 2px; right: 2px; bottom: 1px;
+  font-family: var(--mono); font-size: .6rem; font-weight: 700; color: var(--focus);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tint .grid .card { border-color: #fff; }
+
+.clue { font-family: var(--fun); font-weight: 700; color: var(--hi); font-size: clamp(1.2rem, 5.5vw, 1.6rem); min-height: 1.3em; text-align: center; }
+.status { font-size: 1rem; font-weight: 600; min-height: 2.8em; text-wrap: balance; }
+.seg.counts { grid-template-columns: repeat(6, 1fr); gap: 6px; }
+
+/* Clue history */
+.log summary { cursor: pointer; color: var(--muted); }
+.log ol { margin: 10px 0 0; padding-left: 1.4rem; display: grid; gap: 4px; }
+.log .p0 { color: var(--t0-text); } .log .p1 { color: var(--t1-text); }
+.log .pn { color: var(--neutral); } .log .px { color: #ff4444; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

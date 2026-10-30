@@ -1,0 +1,3 @@
+- setup screen with settings (turn timer, word lists)
+- rotate spymasters on Play again
+- single device mode

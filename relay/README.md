@@ -3,11 +3,14 @@
 A Cloudflare Worker that passes online-game messages between a host and its
 guests. One Durable Object per room code; the host's browser still runs the rules.
 
-Used by both Phrase Potato and Neural Neighbours. Each game has its own copy of
+Used by Phrase Potato, Neural Neighbours and Spy Spaghetti. Each game has its own copy of
 the client in its `net.js`; room codes are shared, so a code only ever belongs
 to one game at a time.
 
 ## Run locally
+
+`./dev.sh` at the top of the repo starts both of these, and Ctrl+C stops both.
+Or by hand:
 
 ```
 npm install

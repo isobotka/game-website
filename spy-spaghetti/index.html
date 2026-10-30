@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spy Spaghetti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap">
+<link rel="stylesheet" href="../shared/game.css">
+<link rel="stylesheet" href="style.css">
+<!-- Screens are below; ../shared/game.css and style.css have the look. Code: decks.js (words), rules.js (game rules),
+     net.js (online), ui.js (drawing screens and the board), main.js (buttons). -->
+</head>
+<body>
+<nav class="site"><a href="../">~ ian's games ~</a></nav>
+<main id="app">
+
+  <section class="screen" id="s-mode">
+    <div class="inner">
+      <h1>Spy Spaghetti</h1>
+      <hr class="bar-rule">
+
+      <ol class="rules">
+        <li>Two teams, each with a spymaster who secretly knows which words are their agents.</li>
+        <li>The spymaster says one word and a number, like <em>Fruit, 2</em>.</li>
+        <li>Their team picks words. Find all your agents first, and never pick the assassin.</li>
+      </ol>
+
+      <hr class="bar-rule">
+
+      <div class="actions">
+        <button class="btn solid slim" id="btnHost" type="button">Online: Host</button>
+        <button class="btn solid slim" id="btnJoin" type="button">Online: Join</button>
+        <p class="hint error" id="modeStatus" role="status"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-join" hidden>
+    <div class="inner">
+      <p class="mono">Online</p>
+      <h2>Join a game</h2>
+      <label class="field">
+        <span class="mono">Room code</span>
+        <input class="input code" id="joinCode" type="text" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go">
+      </label>
+      <p class="hint">Ask the host for the 4-letter code on their screen.</p>
+      <p class="hint error" id="joinStatus" role="status"></p>
+      <div class="spacer"></div>
+      <div class="actions">
+        <button class="btn solid" id="btnJoinGo" type="button">Join</button>
+        <button class="btn ghost" id="btnJoinBack" type="button">Back</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-lobby" hidden>
+    <div class="inner">
+      <p class="mono">Room code</p>
+      <p class="room-code" id="lobbyCode"></p>
+      <button class="btn ghost" id="btnShare" type="button">Copy invite link</button>
+
+      <label class="field">
+        <span class="mono">Your name</span>
+        <input class="input" id="myName" type="text" maxlength="16" autocomplete="nickname" enterkeyhint="done">
+      </label>
+
+      <fieldset>
+        <legend>Your team</legend>
+        <div class="seg two">
+          <label class="chip"><input class="vh" type="radio" name="team" id="team-0" value="0"><span>Teal</span></label>
+          <label class="chip"><input class="vh" type="radio" name="team" id="team-1" value="1"><span>Magenta</span></label>
+        </div>
+        <label class="chip" id="spyChip"><input class="vh" type="checkbox" id="spyToggle"><span>I'll be the spymaster</span></label>
+      </fieldset>
+
+      <div class="board" id="lobbyTeams"></div>
+
+      <div class="spacer"></div>
+      <p class="hint" id="lobbyStatus" role="status"></p>
+      <div class="actions">
+        <button class="btn solid" id="btnLobbyStart" type="button">Start game</button>
+        <button class="btn ghost" id="btnLeave" type="button">Leave room</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-game" hidden>
+    <div class="inner">
+      <div class="bar">
+        <span id="who"></span>
+        <span id="miniScore" aria-label="Agents left"></span>
+      </div>
+
+      <div class="stage">
+        <p class="clue" id="clue"></p>
+        <div class="grid" id="grid"></div>
+        <p class="status" id="status" aria-live="polite"></p>
+      </div>
+
+      <div class="actions">
+        <div class="seg two" id="joinRow" hidden>
+          <button class="btn solid" id="btnJoin0" type="button">Join Teal</button>
+          <button class="btn solid" id="btnJoin1" type="button">Join Magenta</button>
+        </div>
+        <fieldset id="countField" hidden>
+          <legend>Your number</legend>
+          <div class="seg counts" id="counts"></div>
+        </fieldset>
+        <button class="btn solid" id="btnClue" type="button" hidden>I've said my clue</button>
+        <button class="btn solid" id="btnLock" type="button" hidden>Lock it in</button>
+        <button class="btn ghost" id="btnPass" type="button" hidden>End our turn</button>
+        <button class="btn solid" id="btnTakeSpy" type="button" hidden>Take over as spymaster</button>
+        <details class="log" id="logBox" hidden>
+          <summary class="mono">Clue history</summary>
+          <ol id="log"></ol>
+        </details>
+        <button class="btn ghost" id="btnEnd" type="button" hidden>End game</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen tint t0" id="s-win" hidden>
+    <div class="inner">
+      <p class="mono">Game over</p>
+      <h2 id="winTitle"></h2>
+      <p class="final" id="winScore"></p>
+      <div class="grid" id="winGrid"></div>
+      <div class="spacer"></div>
+      <div class="actions">
+        <button class="btn onteam" id="btnAgain" type="button">Play again</button>
+        <button class="btn ghost" id="btnLobby" type="button">Back to lobby</button>
+        <p class="hint" id="winHint" hidden></p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Bump this when you publish a change. -->
+<p class="version" aria-label="Version 0.1">v0.1</p>
+
+<script src="decks.js"></script>
+<script src="rules.js"></script>
+<script src="net.js"></script>
+<script src="ui.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
