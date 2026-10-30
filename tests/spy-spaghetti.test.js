@@ -191,4 +191,28 @@ test.describe('Spy Spaghetti', function () {
     s = R.reduce(s, { type: 'CLUE', from: 'g1', count: 1 });
     assert.equal(s.phase, 'guess');
   });
+
+  test.it('an open spymaster seat goes to whoever takes it first, and only on their own team', function () {
+    var s = game();
+    s = load.play(R, s, [
+      ['p2', 'LEAVE'], ['g1', 'JOIN'], ['g2', 'JOIN'],
+      ['g1', 'SET_TEAM', { team: 1 }], ['g2', 'SET_TEAM', { team: 1 }], ['g1', 'SET_SPY', { on: true }]
+    ]);
+    assert.equal(spyOf(s, 1).id, 'g1');
+    assert.equal(R.reduce(s, { type: 'SET_SPY', from: 'g2', on: true }), s, 'the seat is taken');
+    assert.equal(R.reduce(s, { type: 'SET_SPY', from: 'g1', on: false }), s, 'they have seen the key, so they stay');
+
+    s = load.play(R, s, [['g3', 'JOIN'], ['g3', 'SET_TEAM', { team: 0 }]]);
+    assert.equal(R.reduce(s, { type: 'SET_SPY', from: 'g3', on: true }), s, "Teal's seat is not open");
+  });
+
+  test.it('an operative taking the open seat loses their mark', function () {
+    var s = load.play(R, game(), [[HOST, 'LEAVE']]);
+    s = load.play(R, s, [['p1', 'MARK', { card: 0 }]]);
+    if (s.active !== 0) s = load.play(R, s, [['p2', 'CLUE', { count: 1 }], ['p3', 'MARK', { card: 0 }], ['p3', 'LOCK']]);
+    // Teal has no spymaster, so give p1 the seat whether or not Teal is guessing.
+    s = R.reduce(s, { type: 'SET_SPY', from: 'p1', on: true });
+    assert.equal(spyOf(s, 0).id, 'p1');
+    assert.ok(!('p1' in s.marks));
+  });
 });
